@@ -1,10 +1,21 @@
-version: '3.9'
-
 services:
+  server:
+    container_name: sn-server
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+      - redis
+    restart: on-failure
+    volumes:
+      - ./server:/usr/share/app
+      - /usr/share/app/node_modules
+
   db:
+    container_name: sn-db
     image: postgres:16.3-alpine3.20
-    container_name: db
-    restart: always
+    restart: on-failure
     environment:
       - POSTGRES_DB=${DB_NAME}
       - POSTGRES_USER=${DB_USER}
@@ -15,24 +26,25 @@ services:
       - 5432:5432
 
   adminer:
+    container_name: sn-db-ui
     image: adminer
-    container_name: db-ui
-    restart: always
     depends_on:
       - db
     ports:
       - 8080:8080
 
   redis:
+    container_name: sn-redis
     image: redis:7.2.5-alpine
-    container_name: redis
+    restart: on-failure
+    volumes:
+      - redis_data:/data
     ports:
       - 6379:6379
 
   redis-commander:
+    container_name: sn-redis-ui
     image: ghcr.io/joeferner/redis-commander:latest
-    container_name: redis-ui
-    restart: always
     depends_on:
       - redis
     environment:
@@ -42,3 +54,4 @@ services:
 
 volumes:
   db_data:
+  redis_data:

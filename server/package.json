@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start:dev": ""
+    "start:dev": "NODE_ENV=development nodemon ./src/app.ts",
+    "start:prod": "NODE_ENV=production nodemon ./src/app.ts"
   },
   "keywords": [],
   "author": "",
@@ -40,6 +41,11 @@
     "@types/pg": "^8.11.6",
     "drizzle-kit": "^0.21.4",
     "morgan": "^1.10.0",
+    "nodemon": "^3.1.1",
+    "ts-node": "^10.9.2",
     "typescript": "^5.4.5"
+  },
+  "_moduleAliases": {
+    "@": "./src"
   }
 }
