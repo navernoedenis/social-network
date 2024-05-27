@@ -1,0 +1,13 @@
+{
+  "name": "social-network",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "app:start": "docker compose --env-file ./server/src/env/.env.dev up",
+    "app:stop": "docker compose --env-file ./server/src/env/.env.dev down"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
