@@ -23,8 +23,25 @@ const winston = createLogger({
   transports: [fileRotateTransport],
 });
 
+const getStatusColor = (status: string) => {
+  const code = parseInt(status);
+
+  switch (true) {
+    case code < 200:
+      return colorWord.one(code, 'white');
+    case code < 300:
+      return colorWord.one(code, 'green');
+    case code < 400:
+      return colorWord.one(code, 'cyan');
+    case code < 500:
+      return colorWord.one(code, 'yellow');
+  }
+
+  return colorWord.one(code, 'red');
+};
+
 export const logger = morgan(
-  (tokens, req: IncomingMessage & { body: Object }, res) => {
+  (tokens, req: IncomingMessage & { body: object }, res) => {
     const method = tokens.method(req, res);
     const url = tokens.url(req, res);
     const status = tokens.status(req, res);
@@ -55,23 +72,3 @@ export const logger = morgan(
     },
   }
 );
-
-function getStatusColor(status: string) {
-  const code = parseInt(status);
-
-  switch (true) {
-    case code < 200:
-      return colorWord.one(code, 'white');
-
-    case code < 300:
-      return colorWord.one(code, 'green');
-
-    case code < 400:
-      return colorWord.one(code, 'cyan');
-
-    case code < 500:
-      return colorWord.one(code, 'yellow');
-  }
-
-  return colorWord.one(code, 'red');
-}
