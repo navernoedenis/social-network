@@ -6,7 +6,7 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import helmet from 'helmet';
 
-import { ENV } from '@/config/env';
+import { ENV } from '@/app/env';
 import { logger } from '@/utils/lib/logger';
 
 export const middlewares: RequestHandler[] = [
@@ -17,11 +17,11 @@ export const middlewares: RequestHandler[] = [
   bodyParser.urlencoded({ extended: false }),
 ];
 
-if (ENV.NODE_ENV === 'development') {
+if (ENV.IS_DEVELOPMENT) {
   middlewares.push(...[logger]);
 }
 
-if (ENV.NODE_ENV === 'production') {
+if (ENV.IS_PRODUCTION) {
   middlewares.push(...[getCompression(), getRateLimiter()]);
 }
 

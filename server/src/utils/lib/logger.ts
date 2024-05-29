@@ -1,4 +1,4 @@
-import { IncomingMessage } from 'http';
+import { type IncomingMessage } from 'http';
 import { createLogger, transports, format } from 'winston';
 import path from 'path';
 import morgan from 'morgan';

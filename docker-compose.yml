@@ -11,6 +11,8 @@ services:
     volumes:
       - ./server:/usr/share/app
       - /usr/share/app/node_modules
+    ports:
+      - 4000:${SERVER_PORT}
 
   db:
     container_name: sn-db

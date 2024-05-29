@@ -2,7 +2,7 @@ FROM node:22-alpine
 
 WORKDIR /usr/share/app
 
-COPY package*.json .
+COPY ["package*.json", ".npmrc", "./"]
 
 RUN npm install
 

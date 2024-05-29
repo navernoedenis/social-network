@@ -2,21 +2,15 @@ import { z, type ZodIssue } from 'zod';
 import { print } from '@/utils/lib/print';
 
 const validate = {
-  string: z.string().trim().min(1, "Can't be empty"),
-  port: z.number({ coerce: true }).positive('Wrong port'),
-  host: z.union([
-    z.literal('localhost'),
-    z.string().ip({ version: 'v4', message: 'Invalid host address' }),
-  ]),
+  env: z.union([z.literal('development'), z.literal('production')]),
+  port: z.number({ coerce: true }).positive(),
+  string: z.string().trim().min(1),
 };
 
 const ENV_SCHEMA = z.object({
-  NODE_ENV: z.union([z.literal('development'), z.literal('production')]),
+  NODE_ENV: validate.env,
 
-  CLIENT_HOST: validate.host,
-  CLIENT_PORT: validate.port,
-
-  SERVER_HOST: validate.host,
+  SERVER_HOST: validate.string,
   SERVER_PORT: validate.port,
 
   JWT_ACCESS_SECRET: validate.string,
@@ -24,13 +18,13 @@ const ENV_SCHEMA = z.object({
   JWT_REFRESH_SECRET: validate.string,
   JWT_REFRESH_EXPIRE: validate.string,
 
-  DB_HOST: validate.host,
+  DB_HOST: validate.string,
   DB_PORT: validate.port,
   DB_NAME: validate.string,
   DB_USER: validate.string,
   DB_PASSWORD: validate.string,
 
-  REDIS_HOST: validate.host,
+  REDIS_HOST: validate.string,
   REDIS_PORT: validate.port,
 });
 
@@ -49,4 +43,7 @@ if (error) {
   throw new Error('Env validation errors');
 }
 
-export const ENV = data;
+export const ENV = Object.assign({}, data, {
+  IS_DEVELOPMENT: data.NODE_ENV === 'development',
+  IS_PRODUCTION: data.NODE_ENV === 'production',
+});

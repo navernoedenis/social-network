@@ -7,6 +7,7 @@ export const print = {
   error: (...data: TData[]) => console.log(chalk.red(...data)),
   info: (...data: TData[]) => console.log(chalk.blue(...data)),
   success: (...data: TData[]) => console.log(chalk.green(...data)),
+  text: (...data: TData[]) => console.log(chalk.white(...data)),
   warn: (...data: TData[]) => console.log(chalk.yellow(...data)),
 };
 

@@ -3,8 +3,12 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "app:start": "docker compose --env-file ./server/src/env/.env.development up",
-    "app:stop": "docker compose --env-file ./server/src/env/.env.development down"
+    "app:start": "npm run server:start",
+    "app:stop": "npm run server:stop",
+    "client:start": "",
+    "client:stop": "",
+    "server:start": "docker compose --env-file ./server/src/envs/.env.development up",
+    "server:stop": "docker compose --env-file ./server/src/envs/.env.development down"
   },
   "keywords": [],
   "author": "",
