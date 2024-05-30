@@ -2,7 +2,10 @@ import './packages';
 
 import { app } from '@/app';
 import { ENV } from '@/app/env';
-import { dbClient, cacheClient } from '@/config/db';
+
+import { cacheClient } from '@/config/cache-client.config';
+import { dbClient } from '@/config/db-client.config';
+
 import { getErrorMessage } from '@/utils/helpers/error-message';
 import { print, colorWord } from '@/utils/lib/print';
 
@@ -16,11 +19,14 @@ const startServer = async () => {
         'yellow'
       );
 
-      print.success(`Server started working on: ${hostname}`);
+      print.success(`Server started working on: ${hostname} ✨`);
     });
   } catch (error) {
-    const errorMessage = getErrorMessage(error);
-    print.error(errorMessage);
+    print.error(getErrorMessage(error));
+
+    await dbClient.end();
+    await cacheClient.disconnect();
+    process.exit(1);
   }
 };
 

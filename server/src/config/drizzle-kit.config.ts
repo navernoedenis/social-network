@@ -2,7 +2,7 @@ import '@/packages';
 import { defineConfig } from 'drizzle-kit';
 import { ENV } from '@/app/env';
 
-const drizzleConfig = defineConfig({
+const drizzleKitConfig = defineConfig({
   schema: './src/db/schema',
   out: './drizzle',
   dialect: 'postgresql',
@@ -15,4 +15,4 @@ const drizzleConfig = defineConfig({
   },
 });
 
-export default drizzleConfig;
+export default drizzleKitConfig;

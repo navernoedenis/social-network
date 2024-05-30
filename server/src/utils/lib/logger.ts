@@ -16,7 +16,7 @@ const fileRotateTransport = new transports.DailyRotateFile({
 const winston = createLogger({
   level: 'http',
   format: format.combine(
-    format.timestamp({ format: 'HH:MM:SS A' }),
+    format.timestamp({ format: 'hh:mm:ss A' }),
     format.json(),
     format.prettyPrint()
   ),

@@ -1,7 +1,8 @@
 import { Router } from 'express';
+import { AppHandlers } from '@/utils/app-handlers';
 
 export const router = Router();
 
-router.get('/test', (req, res) => {
-  res.status(200).json({ message: 'Test works!' });
-});
+router.get('/test', AppHandlers.testHandler);
+router.use('*', AppHandlers.notFoundtHandler);
+router.use(AppHandlers.httpErrorHandler);

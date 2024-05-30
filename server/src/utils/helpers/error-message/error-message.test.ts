@@ -1,14 +1,14 @@
 import { getErrorMessage } from './error-message';
 import { z } from 'zod';
 
-describe('test getErrorMessage', () => {
-  test('default error', () => {
+describe('test func get-error-message', () => {
+  test('new error: return message', () => {
     const message = 'Typo error';
     const error = new Error(message);
     expect(getErrorMessage(error)).toBe(message);
   });
 
-  test('zod error', () => {
+  test('zod error: return message', () => {
     const message = 'Oh no!';
     const zodError = new z.ZodError([
       {
@@ -21,7 +21,7 @@ describe('test getErrorMessage', () => {
     expect(getErrorMessage(zodError)).toBe(message);
   });
 
-  test('unknown error', () => {
+  test('unknown error: return message', () => {
     [[], {}, null, undefined, '', 5, true, false].forEach((value) => {
       expect(getErrorMessage(value)).toBe('Unknown error');
     });
