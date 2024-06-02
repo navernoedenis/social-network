@@ -1,4 +1,4 @@
-import { httpStatus } from '@/utils/constants/http-status';
+import { httpStatus } from '@/utils/constants';
 import {
   type HttpError,
   type HttpResponse,

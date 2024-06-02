@@ -6,8 +6,8 @@ import { ENV } from '@/app/env';
 import { cacheClient } from '@/config/cache-client.config';
 import { dbClient } from '@/config/db-client.config';
 
-import { getErrorMessage } from '@/utils/helpers/error-message';
-import { print, colorWord } from '@/utils/lib/print';
+import { getErrorMessage } from '@/utils/helpers';
+import { print, colorWord } from '@/utils/lib';
 
 const startServer = async () => {
   try {

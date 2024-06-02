@@ -1,4 +1,4 @@
-import { httpStatus } from '../../constants/http-status';
+import { httpStatus } from '../../constants';
 import { type HttpError as IHttpError } from '@/types/global';
 
 abstract class HttpError extends Error implements IHttpError {

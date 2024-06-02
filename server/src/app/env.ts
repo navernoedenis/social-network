@@ -1,31 +1,24 @@
 import { z, type ZodIssue } from 'zod';
-import { print } from '@/utils/lib/print';
-
-const validate = {
-  env: z.union([z.literal('development'), z.literal('production')]),
-  port: z.number({ coerce: true }).positive(),
-  string: z.string().trim().min(1),
-};
+import { print } from '@/utils/lib';
+import { type ENV_MODE } from '@/types/global';
 
 const ENV_SCHEMA = z.object({
-  NODE_ENV: validate.env,
+  DB_HOST: z.string().trim().min(1),
+  DB_PORT: z.number({ coerce: true }).positive(),
+  DB_NAME: z.string().trim().min(1),
+  DB_USER: z.string().trim().min(1),
+  DB_PASSWORD: z.string().trim().min(1),
 
-  SERVER_HOST: validate.string,
-  SERVER_PORT: validate.port,
+  REDIS_HOST: z.string().trim().min(1),
+  REDIS_PORT: z.number({ coerce: true }).positive(),
 
-  JWT_ACCESS_SECRET: validate.string,
-  JWT_ACCESS_EXPIRE: validate.string,
-  JWT_REFRESH_SECRET: validate.string,
-  JWT_REFRESH_EXPIRE: validate.string,
+  SERVER_HOST: z.string().trim().min(1),
+  SERVER_PORT: z.number({ coerce: true }).positive(),
 
-  DB_HOST: validate.string,
-  DB_PORT: validate.port,
-  DB_NAME: validate.string,
-  DB_USER: validate.string,
-  DB_PASSWORD: validate.string,
-
-  REDIS_HOST: validate.string,
-  REDIS_PORT: validate.port,
+  JWT_ACCESS_SECRET: z.string().trim().min(1),
+  JWT_ACCESS_EXPIRE: z.string().trim().min(1),
+  JWT_REFRESH_SECRET: z.string().trim().min(1),
+  JWT_REFRESH_EXPIRE: z.string().trim().min(1),
 });
 
 const printErrors = (errors: ZodIssue[]) => {
@@ -43,7 +36,9 @@ if (error) {
   throw new Error('Env validation errors');
 }
 
+const mode: ENV_MODE = (process.env.NODE_ENV as ENV_MODE) ?? 'development';
+
 export const ENV = Object.assign({}, data, {
-  IS_DEVELOPMENT: data.NODE_ENV === 'development',
-  IS_PRODUCTION: data.NODE_ENV === 'production',
+  IS_DEVELOPMENT: mode === 'development',
+  IS_PRODUCTION: mode === 'production',
 });

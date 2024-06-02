@@ -1,9 +1,13 @@
 export { type Request, type Response, type NextFunction } from 'express';
 
+export type ENV_MODE = 'development' | 'production';
+export type Role = 'user' | 'admin' | 'root';
+
 export interface AuthRequest extends Request {
   user: {
     id: string;
     email: string;
+    role: Role;
   };
 }
 

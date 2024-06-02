@@ -7,7 +7,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 
 import { ENV } from '@/app/env';
-import { logger } from '@/utils/lib/logger';
+import { logger } from '@/utils/lib';
 
 export const middlewares: RequestHandler[] = [
   getCors(),
