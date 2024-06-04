@@ -3,7 +3,7 @@ import { defineConfig } from 'drizzle-kit';
 import { ENV } from '@/app/env';
 
 const drizzleKitConfig = defineConfig({
-  schema: './src/db/schema',
+  schema: './src/db/files/entities.ts',
   out: './drizzle',
   dialect: 'postgresql',
   dbCredentials: {

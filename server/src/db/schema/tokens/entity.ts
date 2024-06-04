@@ -6,7 +6,8 @@ import {
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
-import { users } from '@/db/schema';
+
+import { users } from '@/db/files/entities';
 
 export const refreshTokens = pgTable(
   'refresh_tokens',
@@ -16,8 +17,8 @@ export const refreshTokens = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
     token: varchar('token', { length: 255 }).notNull(),
-    browser: varchar('browser', { length: 15 }).notNull(),
-    os: varchar('os', { length: 15 }).notNull(),
+    browser: varchar('browser', { length: 25 }).notNull(),
+    os: varchar('os', { length: 20 }).notNull(),
     ip: varchar('ip', { length: 30 }).notNull(),
     expiredAt: timestamp('expired_at', { mode: 'date' }).notNull(),
   },

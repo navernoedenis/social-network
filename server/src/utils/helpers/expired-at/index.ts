@@ -1,1 +1,1 @@
-export { expiredAt } from './expired-at';
+export { getExpiredAt } from './expired-at';

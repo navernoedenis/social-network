@@ -5,10 +5,10 @@ export const MILLISECONDS_IN = {
   days: 8.64e7,
 };
 
-export const expiredAt = (
+export const getExpiredAt = (
   value: number,
   type: keyof typeof MILLISECONDS_IN
 ) => {
-  const expiredTime = value * MILLISECONDS_IN[type] + Date.now();
+  const expiredTime = Date.now() + value * MILLISECONDS_IN[type];
   return new Date(expiredTime);
 };

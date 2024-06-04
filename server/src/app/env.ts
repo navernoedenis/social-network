@@ -1,6 +1,6 @@
 import { z, type ZodIssue } from 'zod';
-import { print } from '@/utils/lib';
-import { type ENV_MODE } from '@/types/global';
+import { print } from '@/utils/lib/print';
+import { type ENV_MODE } from '@/types/main';
 
 const ENV_SCHEMA = z.object({
   DB_HOST: z.string().trim().min(1),
@@ -16,9 +16,7 @@ const ENV_SCHEMA = z.object({
   SERVER_PORT: z.number({ coerce: true }).positive(),
 
   JWT_ACCESS_SECRET: z.string().trim().min(1),
-  JWT_ACCESS_EXPIRE: z.string().trim().min(1),
   JWT_REFRESH_SECRET: z.string().trim().min(1),
-  JWT_REFRESH_EXPIRE: z.string().trim().min(1),
 });
 
 const printErrors = (errors: ZodIssue[]) => {

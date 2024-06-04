@@ -6,7 +6,8 @@ import {
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
-import { users } from '@/db/schema';
+
+import { users } from '@/db/files/entities';
 
 export const emailVerifications = pgTable(
   'email_verifications',

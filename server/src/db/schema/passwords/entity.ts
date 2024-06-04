@@ -1,5 +1,5 @@
 import { integer, uuid, pgTable, index, varchar } from 'drizzle-orm/pg-core';
-import { users } from '@/db/schema';
+import { users } from '@/db/files/entities';
 
 export const passwords = pgTable(
   'passwords',

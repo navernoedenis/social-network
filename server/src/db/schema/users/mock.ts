@@ -5,7 +5,7 @@ export const createUser = (): NewUser => ({
   email: faker.internet.email(),
   username: faker.helpers.arrayElement([faker.internet.userName(), null]),
   photo: faker.helpers.arrayElement([faker.image.avatar(), null]),
-  firstname: faker.person.firstName(),
-  lastname: faker.person.lastName(),
+  firstname: faker.helpers.arrayElement([faker.person.firstName(), null]),
+  lastname: faker.helpers.arrayElement([faker.person.lastName(), null]),
   role: 'user',
 });

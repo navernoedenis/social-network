@@ -1,5 +1,5 @@
 import { httpStatus } from '../../constants';
-import { type HttpError as IHttpError } from '@/types/global';
+import { type HttpError as IHttpError } from '@/types/main';
 
 abstract class HttpError extends Error implements IHttpError {
   abstract statusCode: number;
@@ -23,4 +23,12 @@ export class Forbidden extends HttpError {
 
 export class NotFound extends HttpError {
   statusCode = httpStatus.NOT_FOUND;
+}
+
+export class Conflict extends HttpError {
+  statusCode = httpStatus.CONFLICT;
+}
+
+export class InternalServerError extends HttpError {
+  statusCode = httpStatus.INTERNAL_SERVER_ERROR;
 }

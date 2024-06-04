@@ -3,20 +3,21 @@ export { type Request, type Response, type NextFunction } from 'express';
 export type ENV_MODE = 'development' | 'production';
 export type Role = 'user' | 'admin' | 'root';
 
-export interface AuthRequest extends Request {
-  user: {
-    id: string;
-    email: string;
-    role: Role;
-  };
-}
+export type AuthUser = {
+  id: number;
+  role: Role;
+};
 
 export type HttpResponse = { statusCode: number } & (
   | { success: true; message: string; data: unknown; error?: never }
   | { success: false; message?: never; data?: never; error: string }
 );
 
-export interface HttpError {
+export type HttpError = {
   statusCode: number;
   message: string;
-}
+};
+
+export type ExecutionResult<T> =
+  | { data: T; error?: never }
+  | { data?: never; error: string };

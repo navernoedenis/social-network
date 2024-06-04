@@ -1,13 +1,19 @@
+import { relations } from 'drizzle-orm';
 import {
+  index,
   pgTable,
   serial,
   text,
-  varchar,
   uniqueIndex,
-  index,
+  varchar,
 } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
-import { passwords, profiles, refreshTokens, settings } from '@/db/schema';
+
+import {
+  passwords,
+  profiles,
+  refreshTokens,
+  settings,
+} from '@/db/files/entities';
 
 export const users = pgTable(
   'users',
@@ -18,7 +24,9 @@ export const users = pgTable(
     photo: text('photo'),
     firstname: varchar('firstname', { length: 50 }),
     lastname: varchar('lastname', { length: 50 }),
-    role: text('role', { enum: ['user', 'admin', 'root'] }).default('user'),
+    role: text('role', { enum: ['user', 'admin', 'root'] })
+      .notNull()
+      .default('user'),
   },
   (table) => ({
     emailIdx: uniqueIndex('users_email_idx').on(table.email),

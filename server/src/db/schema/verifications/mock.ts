@@ -25,7 +25,6 @@ export const createTwoFactorVerification = ({
   expiredAt,
 }: {
   userId: number;
-  otp: string;
   expiredAt: Date;
 }): NewTwoFactorVerification => ({
   userId,

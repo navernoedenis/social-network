@@ -1,4 +1,5 @@
 import { sql } from 'drizzle-orm';
+import { users } from '@/db/files/entities';
 import {
   boolean,
   date,
@@ -9,7 +10,6 @@ import {
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
-import { users } from '@/db/schema';
 
 export const profiles = pgTable(
   'profiles',
@@ -22,13 +22,14 @@ export const profiles = pgTable(
     about: varchar('about', { length: 200 }),
     birthday: date('birthday', { mode: 'date' }),
 
-    isOfficial: boolean('is_official').default(false),
-    isVerified: boolean('is_verified').default(false),
+    isActive: boolean('is_active').notNull().default(true),
+    isOfficial: boolean('is_official').notNull().default(false),
+    isVerified: boolean('is_verified').notNull().default(false),
 
-    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
-    updatedAt: timestamp('updated_at', { mode: 'date' }).$onUpdate(
-      () => sql`CURRENT_TIMESTAMP`
-    ),
+    createdAt: timestamp('created_at', { mode: 'date' }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { mode: 'date' })
+      .notNull()
+      .$onUpdate(() => sql`CURRENT_TIMESTAMP`),
   },
   (table) => ({
     userIdx: index('profiles_user_idx').on(table.userId),

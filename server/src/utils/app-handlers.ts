@@ -5,7 +5,7 @@ import {
   type NextFunction,
   type Request,
   type Response,
-} from '@/types/global';
+} from '@/types/main';
 
 export class AppHandlers {
   static testHandler = (req: Request, res: Response) => {
@@ -34,7 +34,7 @@ export class AppHandlers {
   ) => {
     res.status(error.statusCode).json({
       error: error.message,
-      statusCode: error.statusCode,
+      statusCode: error.statusCode ?? httpStatus.INTERNAL_SERVER_ERROR,
       success: false,
     } as HttpResponse);
   };
