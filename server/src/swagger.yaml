@@ -1,0 +1,126 @@
+openapi: 3.1.0
+info:
+  title: Social Network
+  description: Api for social network
+  version: 1.0.0
+
+paths:
+  /auth/login:
+    post:
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+
+      responses:
+        '200':
+          description: access token and user data
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/user_profile'
+
+components:
+  schemas:
+    user:
+      type: object
+      properties:
+        id:
+          type: number
+          example: 1
+        email:
+          type: string
+          example: Josh.Haley@hotmail.com
+        username:
+          type: [string, null]
+          example: Finn14
+        photo:
+          type: [string, null]
+          example: https://i.pinimg.com/736x/e6/82/92/e68292aca045835f376220eeee421c1d.jpg
+        firstname:
+          type: [string, null]
+          example: Merritt
+        lastname:
+          type: [string, null]
+          example: Bailey
+        role:
+          type: string
+          example: Admin
+
+    profile:
+      type: object
+      properties:
+        id:
+          type: string
+          example: a9364570-c50d-4298-90f1-f36325a13471
+        userId:
+          type: number
+          example: 1
+        about:
+          type: string
+          example: aglet lover, grad 🧩
+        birthday:
+          type: [date, null]
+          example: 2024-06-05T15:02:57.345Z
+        isActive:
+          type: boolean
+          example: true
+        isOfficial:
+          type: boolean
+          example: false
+        isVerified:
+          type: boolean
+          example: true
+        createdAt:
+          type: date
+          example: 2024-06-05T15:02:57.345Z
+        updatedAt:
+          type: date
+          example: 2024-06-05T15:02:57.345Z
+
+    user_profile:
+      allOf:
+        - $ref: '#/components/schemas/user'
+        - properties:
+            profile:
+              $ref: '#/components/schemas/profile'
+
+  replies:
+    ok:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        statusCode:
+          type: number
+          example: 200
+        message:
+          type: string
+          example: 'Some text...'
+
+    error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        statusCode:
+          type: number
+          example: 400
+        error:
+          type: string
+          example: 'Some text...'

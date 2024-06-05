@@ -86,7 +86,8 @@ const startSeeding = async () => {
             token: createJwtToken(
               {
                 id: user.id,
-                role: user.role!,
+                email: user.email,
+                role: user.role,
               },
               'refresh'
             ),

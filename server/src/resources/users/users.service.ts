@@ -1,7 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { db } from '@/db';
-import { users, passwords } from '@/db/files/entities';
-import { type Password } from '@/db/files/models';
+import { users } from '@/db/files/entities';
 
 class UsersService {
   async findOne(email: string, config: { withProfile?: boolean } = {}) {
@@ -15,14 +14,6 @@ class UsersService {
     });
 
     return user;
-  }
-
-  async getUserPassword(userId: number) {
-    const password = await db.query.passwords.findFirst({
-      where: eq(passwords.userId, userId),
-    });
-
-    return password as Password;
   }
 }
 

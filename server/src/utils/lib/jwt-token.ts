@@ -1,9 +1,8 @@
 import jwt from 'jsonwebtoken';
 import { ENV } from '@/app/env';
-
 import { print } from '@/utils/lib';
 import { getErrorMessage } from '@/utils/helpers';
-import { type Role } from '@/types/main';
+import { type AuthUser } from '@/types/main';
 
 type JwtType = 'access' | 'refresh';
 
@@ -12,10 +11,7 @@ const settings: Record<JwtType, [string, string]> = {
   refresh: [ENV.JWT_REFRESH_SECRET, '30d'],
 };
 
-type JwtPayload = {
-  id: number;
-  role: Role;
-};
+type JwtPayload = AuthUser;
 
 export const createJwtToken = (
   payload: JwtPayload,

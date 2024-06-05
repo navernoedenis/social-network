@@ -1,22 +1,28 @@
-import { ENV } from '@/app/env';
-import { authService } from '@/resources/auth';
-import { usersService } from '@/resources/users';
-import { httpStatus } from '@/utils/constants';
-import { createHash, createJwtToken, verifyHash, print } from '@/utils/lib';
-import {
-  Conflict,
-  createToken,
-  getExpiredAt,
-  InternalServerError,
-  Unauthorized,
-} from '@/utils/helpers';
-
 import {
   type Request,
   type Response,
   type NextFunction,
   type HttpResponse,
 } from '@/types/main';
+
+import { authService } from '@/resources/auth';
+import { passwordsService } from '@/resources/passwords';
+import { usersService } from '@/resources/users';
+
+import { httpStatus, refreshCookieOptions } from '@/utils/constants';
+import {
+  createHash,
+  createJwtToken,
+  print,
+  verifyHash,
+  verifyJwtToken,
+} from '@/utils/lib';
+import {
+  Conflict,
+  createToken,
+  InternalServerError,
+  Unauthorized,
+} from '@/utils/helpers';
 
 import { type LoginDto, type SignUpDto } from './auth.types';
 
@@ -29,24 +35,24 @@ export const signup = async (
 
   try {
     const user = await usersService.findOne(email);
-    if (user) {
-      throw new Conflict('Email is already taken');
-    }
+    if (user) throw new Conflict('Email is already taken');
 
     const token = createToken();
     const hash = await createHash(password);
 
-    const { error } = await authService.signUp({
+    const { error: signUpError, data: newUser } = await authService.signUp({
       email,
       password: hash,
       token,
     });
-    if (error) {
-      throw new InternalServerError(error);
-    }
 
-    // TODO: ADD EMAIL SERVICE
-    print.info('Your verificatioin token is: ', token);
+    if (!newUser) throw new InternalServerError(signUpError);
+
+    // TODO: Send Email Service:
+    print.info(
+      'Your verification link: ',
+      `${req.protocol}://${req.headers.host}/verifications/email/${token}`
+    );
 
     const message =
       'Congratulations, your account has been successfully created. ' +
@@ -75,37 +81,33 @@ export const login = async (
     const user = await usersService.findOne(loginDto.email, {
       withProfile: true,
     });
-    if (!user) {
-      throw new Unauthorized('No user with this email');
-    }
+    if (!user) throw new Unauthorized('No user with this email');
 
-    const password = await usersService.getUserPassword(user.id);
+    const password = await passwordsService.getUserPassword(user.id);
     const isPasswordsMatch = await verifyHash(loginDto.password, password.hash);
-    if (!isPasswordsMatch) {
-      throw new Unauthorized('Wrong password');
-    }
+
+    if (!isPasswordsMatch) throw new Unauthorized('Wrong password');
 
     const tokenPayload = {
       id: user.id,
+      email: user.email,
       role: user.role,
     };
 
     // TODO: Add refresh tokens service: ip, browser....
+    // TODO: Invalidate old refresh token
+
+    const accessToken = createJwtToken(tokenPayload, 'access');
+    const refreshToken = createJwtToken(tokenPayload, 'refresh');
 
     res
       .status(httpStatus.OK)
-      .cookie('refreshToken', createJwtToken(tokenPayload, 'refresh'), {
-        expires: getExpiredAt(30, 'days'),
-        httpOnly: true,
-        path: '/auth/verify-refresh',
-        sameSite: 'lax',
-        secure: ENV.IS_PRODUCTION,
-      })
+      .cookie('refreshToken', refreshToken, refreshCookieOptions)
       .json({
         success: true,
         statusCode: httpStatus.OK,
         data: {
-          accessToken: createJwtToken(tokenPayload, 'access'),
+          accessToken,
           user,
         },
         message: 'Login successfully',
@@ -115,20 +117,52 @@ export const login = async (
   }
 };
 
-export const logout = async (
+export const logout = async (req: Request, res: Response) => {
+  res
+    .status(httpStatus.OK)
+    .clearCookie('refreshToken')
+    .json({
+      success: true,
+      statusCode: httpStatus.OK,
+      data: null,
+      message: 'Logout successfully',
+    } as HttpResponse);
+};
+
+export const verifyRefreshToken = (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
+  const { refreshToken = '' } = req.cookies;
+
   try {
+    if (!refreshToken) throw new Unauthorized('No refresh token');
+
+    const user = verifyJwtToken(refreshToken, 'refresh');
+    if (!user) throw new Unauthorized('Invalid refresh token');
+
+    // TODO: invalidate refreshToken via refreshTokensService
+
+    const tokenPayload = {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    };
+
+    const newAcessToken = createJwtToken(tokenPayload, 'access');
+    const newRefreshToken = createJwtToken(tokenPayload, 'refresh');
+
     res
       .status(httpStatus.OK)
-      .clearCookie('refreshToken')
+      .cookie('refreshToken', newRefreshToken, refreshCookieOptions)
       .json({
         success: true,
         statusCode: httpStatus.OK,
-        data: null,
-        message: 'Logout successfully',
+        data: {
+          accessToken: newAcessToken,
+        },
+        message: 'You have received a new pair of tokens! 🍐🍏',
       } as HttpResponse);
   } catch (error) {
     next(error);

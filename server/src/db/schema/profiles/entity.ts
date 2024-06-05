@@ -1,4 +1,3 @@
-import { sql } from 'drizzle-orm';
 import { users } from '@/db/files/entities';
 import {
   boolean,
@@ -29,7 +28,7 @@ export const profiles = pgTable(
     createdAt: timestamp('created_at', { mode: 'date' }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { mode: 'date' })
       .notNull()
-      .$onUpdate(() => sql`CURRENT_TIMESTAMP`),
+      .$onUpdate(() => new Date()),
   },
   (table) => ({
     userIdx: index('profiles_user_idx').on(table.userId),

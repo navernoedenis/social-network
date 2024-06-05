@@ -8,16 +8,20 @@ import {
 } from '@/db/files/entities';
 
 import { getErrorMessage, getExpiredAt } from '@/utils/helpers';
+
+import { type User } from '@/db/files/models';
 import { type ExecutionResult } from '@/types/main';
 import { type LoginDto } from './auth.types';
 
 class AuthService {
   async signUp(
     data: LoginDto & { token: string }
-  ): Promise<ExecutionResult<null>> {
+  ): Promise<ExecutionResult<User>> {
     const { email, password, token } = data;
 
     try {
+      let newUser!: User;
+
       await db.transaction(async (ctx) => {
         const [user] = await ctx.insert(users).values({ email }).returning();
 
@@ -34,16 +38,18 @@ class AuthService {
           userId: user.id,
           email: user.email,
           token,
-          expiredAt: getExpiredAt(2, 'hours'),
+          expiredAt: getExpiredAt(15, 'minutes'),
         });
 
         await ctx.insert(settings).values({
           userId: user.id,
         });
+
+        newUser = user;
       });
 
       return {
-        data: null,
+        data: newUser,
       };
     } catch (error) {
       return {

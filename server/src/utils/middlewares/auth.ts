@@ -1,5 +1,4 @@
 import {
-  type AuthUser,
   type NextFunction,
   type Request,
   type Response,
@@ -10,21 +9,19 @@ import { Forbidden, Unauthorized } from '@/utils/helpers';
 import { verifyJwtToken } from '@/utils/lib';
 
 export const isAuthorized = async (
-  req: Request & { user?: AuthUser },
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const [bearer, token] = (req.headers.authorization ?? '').split(' ');
-
   try {
+    const [bearer, token] = (req.headers.authorization ?? '').split(' ');
+
     if (bearer !== 'Bearer' && !token) {
       throw new Unauthorized('No bearer token');
     }
 
     const user = verifyJwtToken(token, 'access');
-    if (!user) {
-      throw new Unauthorized('Invalid token');
-    }
+    if (!user) throw new Unauthorized('Invalid token');
 
     req.user = user;
     next();
@@ -33,15 +30,13 @@ export const isAuthorized = async (
   }
 };
 
-export const hasRole =
-  (allowedRoles: Role[]) =>
-  async (
-    req: Request & { user: AuthUser },
-    res: Response,
-    next: NextFunction
-  ) => {
+export const hasRole = (allowedRoles: Role[]) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const hasPermission = allowedRoles.includes(req.user.role);
+      const user = req.user;
+      if (!user) throw new Forbidden('Not permitted');
+
+      const hasPermission = allowedRoles.includes(user.role);
       if (!hasPermission) {
         throw new Forbidden("You don't have permission");
       }
@@ -51,3 +46,4 @@ export const hasRole =
       next(error);
     }
   };
+};

@@ -5,6 +5,7 @@ export type Role = 'user' | 'admin' | 'root';
 
 export type AuthUser = {
   id: number;
+  email: string;
   role: Role;
 };
 
