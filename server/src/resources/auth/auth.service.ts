@@ -11,14 +11,17 @@ import { getErrorMessage, getExpiredAt } from '@/utils/helpers';
 
 import { type User } from '@/db/files/models';
 import { type ExecutionResult } from '@/types/main';
-import { type LoginDto } from './auth.types';
 
 class AuthService {
-  async signUp(
-    data: LoginDto & { token: string }
-  ): Promise<ExecutionResult<User>> {
-    const { email, password, token } = data;
-
+  async signUp({
+    email,
+    password,
+    verificationToken,
+  }: {
+    email: string;
+    password: string;
+    verificationToken: string;
+  }): Promise<ExecutionResult<User>> {
     try {
       let newUser!: User;
 
@@ -37,7 +40,7 @@ class AuthService {
         await ctx.insert(emailVerifications).values({
           userId: user.id,
           email: user.email,
-          token,
+          token: verificationToken,
           expiredAt: getExpiredAt(15, 'minutes'),
         });
 

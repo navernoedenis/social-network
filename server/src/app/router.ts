@@ -4,12 +4,10 @@ import { Router } from 'express';
 import swaggerUi from 'swagger-ui-express';
 import yaml from 'yaml';
 
-import { ENV } from '@/app/env';
-
-import { authRouter } from '@/resources/auth';
-import { verificationsRouter } from '@/resources/verifications';
-
 import { AppHandlers } from '@/utils/app-handlers';
+import { authRouter } from '@/resources/auth';
+import { ENV } from '@/app/env';
+import { verificationsRouter } from '@/resources/verifications';
 
 export const router = Router();
 

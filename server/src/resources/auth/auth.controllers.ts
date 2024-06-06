@@ -1,22 +1,23 @@
 import {
+  type HttpResponse,
+  type NextFunction,
   type Request,
   type Response,
-  type NextFunction,
-  type HttpResponse,
 } from '@/types/main';
 
 import { authService } from '@/resources/auth';
 import { passwordsService } from '@/resources/passwords';
 import { usersService } from '@/resources/users';
 
-import { httpStatus, refreshCookieOptions } from '@/utils/constants';
+import { httpStatus } from '@/utils/constants';
 import {
   createHash,
-  createJwtToken,
+  createJwtTokens,
   print,
   verifyHash,
   verifyJwtToken,
 } from '@/utils/lib';
+
 import {
   Conflict,
   createToken,
@@ -24,6 +25,7 @@ import {
   Unauthorized,
 } from '@/utils/helpers';
 
+import { createCookieTokenWithOptions, parseCookieToken } from './auth.helpers';
 import { type LoginDto, type SignUpDto } from './auth.types';
 
 export const signup = async (
@@ -35,7 +37,9 @@ export const signup = async (
 
   try {
     const user = await usersService.findOne(email);
-    if (user) throw new Conflict('Email is already taken');
+    if (user) {
+      throw new Conflict('Email is already taken');
+    }
 
     const token = createToken();
     const hash = await createHash(password);
@@ -43,10 +47,12 @@ export const signup = async (
     const { error: signUpError, data: newUser } = await authService.signUp({
       email,
       password: hash,
-      token,
+      verificationToken: token,
     });
 
-    if (!newUser) throw new InternalServerError(signUpError);
+    if (!newUser) {
+      throw new InternalServerError(signUpError);
+    }
 
     // TODO: Send Email Service:
     print.info(
@@ -56,8 +62,7 @@ export const signup = async (
 
     const message =
       'Congratulations, your account has been successfully created. ' +
-      'Please, check your email. We sent an verification on ' +
-      email;
+      'Please, check your email. We sent a verification link on your email';
 
     res.status(httpStatus.OK).json({
       success: true,
@@ -81,12 +86,16 @@ export const login = async (
     const user = await usersService.findOne(loginDto.email, {
       withProfile: true,
     });
-    if (!user) throw new Unauthorized('No user with this email');
+    if (!user) {
+      throw new Unauthorized('No user with this email');
+    }
 
     const password = await passwordsService.getUserPassword(user.id);
-    const isPasswordsMatch = await verifyHash(loginDto.password, password.hash);
 
-    if (!isPasswordsMatch) throw new Unauthorized('Wrong password');
+    const isPasswordsMatch = await verifyHash(loginDto.password, password.hash);
+    if (!isPasswordsMatch) {
+      throw new Unauthorized('Wrong password');
+    }
 
     const tokenPayload = {
       id: user.id,
@@ -95,14 +104,16 @@ export const login = async (
     };
 
     // TODO: Add refresh tokens service: ip, browser....
-    // TODO: Invalidate old refresh token
+    // and invalidate old ones
 
-    const accessToken = createJwtToken(tokenPayload, 'access');
-    const refreshToken = createJwtToken(tokenPayload, 'refresh');
+    const { accessToken, refreshToken } = createJwtTokens(tokenPayload);
+    const cookieToken = createCookieTokenWithOptions(refreshToken, {
+      rememberMe: loginDto.rememberMe,
+    });
 
     res
       .status(httpStatus.OK)
-      .cookie('refreshToken', refreshToken, refreshCookieOptions)
+      .cookie('refreshToken', cookieToken.token, cookieToken.options)
       .json({
         success: true,
         statusCode: httpStatus.OK,
@@ -129,20 +140,23 @@ export const logout = async (req: Request, res: Response) => {
     } as HttpResponse);
 };
 
-export const verifyRefreshToken = (
+export const verifyCookieToken = (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const { refreshToken = '' } = req.cookies;
-
   try {
-    if (!refreshToken) throw new Unauthorized('No refresh token');
+    const { hasToken, isExpired, refreshToken } = parseCookieToken(req.cookies);
+    if (!hasToken) {
+      throw new Unauthorized('No refresh token');
+    }
 
     const user = verifyJwtToken(refreshToken, 'refresh');
-    if (!user) throw new Unauthorized('Invalid refresh token');
+    if (!user) {
+      throw new Unauthorized('Invalid refresh token');
+    }
 
-    // TODO: invalidate refreshToken via refreshTokensService
+    // TODO: Invalidate refreshTokens via service
 
     const tokenPayload = {
       id: user.id,
@@ -150,17 +164,19 @@ export const verifyRefreshToken = (
       role: user.role,
     };
 
-    const newAcessToken = createJwtToken(tokenPayload, 'access');
-    const newRefreshToken = createJwtToken(tokenPayload, 'refresh');
+    const newTokens = createJwtTokens(tokenPayload);
+    const cookieToken = createCookieTokenWithOptions(newTokens.refreshToken, {
+      rememberMe: !isExpired,
+    });
 
     res
       .status(httpStatus.OK)
-      .cookie('refreshToken', newRefreshToken, refreshCookieOptions)
+      .cookie('refreshToken', cookieToken.token, cookieToken.options)
       .json({
         success: true,
         statusCode: httpStatus.OK,
         data: {
-          accessToken: newAcessToken,
+          accessToken: newTokens.accessToken,
         },
         message: 'You have received a new pair of tokens! 🍐🍏',
       } as HttpResponse);

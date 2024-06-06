@@ -15,13 +15,14 @@ export const isAuthorized = async (
 ) => {
   try {
     const [bearer, token] = (req.headers.authorization ?? '').split(' ');
-
-    if (bearer !== 'Bearer' && !token) {
+    if (bearer !== 'Bearer' || !token) {
       throw new Unauthorized('No bearer token');
     }
 
     const user = verifyJwtToken(token, 'access');
-    if (!user) throw new Unauthorized('Invalid token');
+    if (!user) {
+      throw new Unauthorized('Invalid token');
+    }
 
     req.user = user;
     next();

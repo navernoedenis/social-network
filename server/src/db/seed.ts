@@ -41,7 +41,6 @@ const startSeeding = async () => {
       }
 
       const [user] = await db.insert(users).values(userData).returning();
-
       const hash = await createHash('12345678');
       await db.insert(passwords).values({
         userId: user.id,

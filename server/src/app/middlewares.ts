@@ -27,7 +27,7 @@ if (ENV.IS_PRODUCTION) {
 
 function getCors() {
   return cors({
-    origin: ['*'],
+    origin: ['http://localhost:5173'],
     credentials: true,
   });
 }

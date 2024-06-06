@@ -14,7 +14,7 @@ export const checkIsEmailVerified = async (
   try {
     const profile = await profilesService.getProfile(user.id);
     if (profile?.isVerified) {
-      throw new Conflict('Your email has already been verified');
+      throw new Conflict('Your email is already verified');
     }
 
     next();
@@ -23,7 +23,7 @@ export const checkIsEmailVerified = async (
   }
 };
 
-export const checkIsExistsEmailVerification = async (
+export const checkIsEmailVerificationExists = async (
   req: Request,
   res: Response,
   next: NextFunction

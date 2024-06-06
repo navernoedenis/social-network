@@ -1,15 +1,15 @@
-import { httpStatus } from '@/utils/constants';
-import { BadRequest, createToken } from '@/utils/helpers';
-
-import { profilesService } from '@/resources/profiles';
-import { verificationsService } from './verifications.service';
-
 import {
   type Request,
   type Response,
   type NextFunction,
   type HttpResponse,
 } from '@/types/main';
+
+import { httpStatus } from '@/utils/constants';
+import { BadRequest, createToken } from '@/utils/helpers';
+
+import { profilesService } from '@/resources/profiles';
+import { verificationsService } from './verifications.service';
 
 export const verifyEmail = async (
   req: Request,
@@ -58,7 +58,7 @@ export const newEmailVerification = async (
       success: true,
       statusCode: httpStatus.OK,
       data: null,
-      message: 'New verify link has been created and send on your email! ✅',
+      message: 'A new verify link has been created and send on your email! ✅',
     } as HttpResponse);
   } catch (error) {
     next(error);

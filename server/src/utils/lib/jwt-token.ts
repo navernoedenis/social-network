@@ -13,6 +13,11 @@ const settings: Record<JwtType, [string, string]> = {
 
 type JwtPayload = AuthUser;
 
+export const createJwtTokens = (payload: JwtPayload) => ({
+  accessToken: createJwtToken(payload, 'access'),
+  refreshToken: createJwtToken(payload, 'refresh'),
+});
+
 export const createJwtToken = (
   payload: JwtPayload,
   type: JwtType = 'access'

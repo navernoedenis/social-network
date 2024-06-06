@@ -1,1 +1,0 @@
-export { createToken } from './token';

@@ -3,8 +3,8 @@ import { validateBody, isAuthorized } from '@/utils/middlewares';
 import { newEmailVerificationSchema } from './verifications.schemas';
 import { verifyEmail, newEmailVerification } from './verifications.controllers';
 import {
+  checkIsEmailVerificationExists,
   checkIsEmailVerified,
-  checkIsExistsEmailVerification,
 } from './verifications.middlewares';
 
 export const verificationsRouter = Router();
@@ -15,9 +15,9 @@ verificationsRouter
     [
       isAuthorized,
       checkIsEmailVerified,
-      checkIsExistsEmailVerification,
+      checkIsEmailVerificationExists,
       validateBody(newEmailVerificationSchema),
     ],
     newEmailVerification
   )
-  .post('/email/:token', verifyEmail);
+  .get('/email/:token', verifyEmail);

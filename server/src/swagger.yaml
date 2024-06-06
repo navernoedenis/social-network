@@ -1,28 +1,32 @@
 openapi: 3.1.0
+
 info:
   title: Social Network
   description: Api for social network
   version: 1.0.0
 
+tags:
+  - name: auth
+    description: access to social network
+  - name: verification
+    description: social network verification
+
 paths:
   /auth/login:
     post:
-      summary: Login
+      tags:
+        - auth
+      summary: login user
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                password:
-                  type: string
+              $ref: '#/components/forms/login'
 
       responses:
         '200':
-          description: access token and user data
+          description: Receive access token and user data
           content:
             application/json:
               schema:
@@ -32,8 +36,269 @@ paths:
                     properties:
                       data:
                         $ref: '#/components/schemas/user_profile'
+        '400':
+          description: Invalid fields
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - type: object
+                    properties:
+                      error:
+                        type: string
+                        example: Body can't be empty
+        '401':
+          description: Forbidden to login
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - type: object
+                    properties:
+                      statusCode:
+                        type: number
+                        example: 401
+                      error:
+                        type: string
+                        example: No user with this email
+
+  /auth/signup:
+    post:
+      tags:
+        - auth
+      summary: signup user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/forms/signup'
+
+      responses:
+        '200':
+          description: Access token and user data
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        example: null
+                      message:
+                        type: text
+                        example: Congratulations, your account has been
+                          successfully created. Please, check your email.
+                          We sent an verification on joshhaley@hotmail.com
+        '400':
+          description: No request body
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - type: object
+                    properties:
+                      error:
+                        type: string
+                        example: Passwords don't match
+        '409':
+          description: Can't sing up
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - type: object
+                    properties:
+                      statusCode:
+                        type: number
+                        example: 409
+                      error:
+                        type: string
+                        example: Email is already taken
+
+  /auth/logout:
+    post:
+      tags:
+        - auth
+      summary: logout user
+      responses:
+        '200':
+          description: remove refresh token
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        example: null
+                      message:
+                        type: text
+                        example: Logout successfully
+
+  /auth/verify-refresh:
+    get:
+      tags:
+        - auth
+      summary: verify refresh token
+      responses:
+        '200':
+          description: token was verified and a new pair of tokens was given
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.
+                  eyJpZCI6MSwiZW1haWwiOiJkZW5pc0BnbWFpbC5jb20iLCJyb2xlIjoidXNlciIsImlhdCI6MTcxNzY2MjE2MywiZXhwIjoxNzIwMjU0MTYzfQ.
+                  QYQbbxf_oFn1yQz7wTWGawNUldebjUONhMKIIw9MQes; Path=/auth/verify-refresh, HttpOnly
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        example:
+                          accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.
+                            eyJpZCI6MSwiZW1haWwiOiJkZW5pc0BnbWFpbC5jb20iLCJyb2xlIjoidXNlciIsImlhdCI6MTcxNzY2MjE2MywiZXhwIjoxNzE3NjYzMDYzfQ.
+                            CD7ExOJ9KMDRI11sjOPrRNBfOz6KTuTM876JfJwweXc
+                      message:
+                        type: text
+                        example: You have received a new pair of tokens! 🍐🍏
+        '401':
+          description: invalid or no token
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - type: object
+                    properties:
+                      statusCode:
+                        type: number
+                        example: 401
+                      error:
+                        type: string
+                        example: No refresh token
+
+  /verifications/email/{token}:
+    get:
+      tags:
+        - verification
+      summary: verify user email
+      parameters:
+        - in: path
+          name: token
+          schema:
+            type: string
+          required: true
+
+      responses:
+        '200':
+          description: verification by email address
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - properties:
+                      data:
+                        type: object
+                        example: null
+                      message:
+                        type: object
+                        example: 'Your email address has been verified! 👍'
+        '400':
+          description: Invalid token
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - properties:
+                      error:
+                        type: object
+                        example: 'Invalid token'
+
+  /verifications/email/new:
+    post:
+      tags:
+        - verification
+      security:
+        - bearerToken: []
+      summary: new verification email link
+      responses:
+        '200':
+          description: send another verification link if previous one has expired
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - properties:
+                      data:
+                        type: object
+                        example: null
+                      message:
+                        type: string
+                        example: A new verify link has been created and send on your email! ✅
+        '400':
+          description: account already verified
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - properties:
+                      error:
+                        type: string
+                        example: You can't create a new token, because the current one hasn't expired yet
+        '401':
+          description: invalid or no token
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - properties:
+                      statusCode:
+                        type: number
+                        example: 401
+                      error:
+                        type: object
+                        example: No bearer token
+        '409':
+          description: account can't be verified twice
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - properties:
+                      statusCode:
+                        type: number
+                        example: 409
+                      error:
+                        type: string
+                        example: Your email is already verified
 
 components:
+  securitySchemes:
+    bearerToken:
+      type: http
+      scheme: Bearer
+      bearerFormat: JWT
+
   schemas:
     user:
       type: object
@@ -97,6 +362,33 @@ components:
         - properties:
             profile:
               $ref: '#/components/schemas/profile'
+
+  forms:
+    login:
+      type: object
+      properties:
+        email:
+          type: string
+          example: joshhaley@hotmail.com
+        password:
+          type: string
+          example: password2024
+        rememberMe:
+          type: boolean
+          example: true
+
+    signup:
+      type: object
+      properties:
+        email:
+          type: string
+          example: joshhaley@hotmail.com
+        password:
+          type: string
+          example: password2024
+        confirmPassword:
+          type: boolean
+          example: password2024
 
   replies:
     ok:
