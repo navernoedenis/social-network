@@ -1,18 +1,22 @@
 import { type CookieOptions } from 'express';
-import { ENV } from '@/app/env';
 import { getExpiredAt, checkIsExpired } from '@/utils/helpers';
+import { createSecureCookieOptions } from '@/utils/lib';
 import {
   type CookieToken,
   type CookieTokenOptions,
   type ParseCookieToken,
+  type TwoFaPayload,
 } from './auth.types';
 
 export const parseCookieToken = (
   cookies: Record<string, unknown>
 ): ParseCookieToken => {
   const { refreshToken = '' } = cookies as { refreshToken: string };
+
   if (!refreshToken) {
-    return { hasToken: false };
+    return {
+      hasToken: false,
+    };
   }
 
   const { token, expiredAt } = JSON.parse(refreshToken) as CookieToken;
@@ -49,17 +53,23 @@ const createCookieToken = (
 const createCookieTokenOptions = (
   config: CookieTokenOptions
 ): CookieOptions => {
-  return {
+  return createSecureCookieOptions({
     expires: config.rememberMe ? getExpiredAt(30, 'days') : undefined,
-    httpOnly: true,
+  });
+};
 
-    // TODO: Sort it out!!!
-    // Problem: If I set path /auth or any other, except default slash,
-    // Chrome will remove cookie after reload tab or close browser.
-    // Firefox works fine.
-    path: '/',
+export const createTwoFaPayload = (payload: TwoFaPayload) => {
+  const { email, password, otp, rememberMe } = payload;
+  return `${email}:${password}:${otp}:${rememberMe}`;
+};
 
-    sameSite: 'lax',
-    secure: ENV.IS_PRODUCTION,
+export const parseTwoFaPayload = (payload: string): TwoFaPayload => {
+  const [email, password, otp, rememberMe] = payload.split(':');
+
+  return {
+    email,
+    password,
+    otp: +otp,
+    rememberMe: JSON.parse(rememberMe),
   };
 };

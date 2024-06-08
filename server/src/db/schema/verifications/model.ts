@@ -1,8 +1,5 @@
-import { emailVerifications, twoFactorVerifications } from './entity';
+import { verifications } from './entity';
 
-export type EmailVerification = typeof emailVerifications.$inferSelect;
-export type NewEmailVerification = typeof emailVerifications.$inferInsert;
-
-export type TwoFactorVerification = typeof twoFactorVerifications.$inferSelect;
-export type NewTwoFactorVerification =
-  typeof twoFactorVerifications.$inferInsert;
+export type NewVerification = typeof verifications.$inferInsert;
+export type Verification = typeof verifications.$inferSelect;
+export type VerificationType = Verification['type'];

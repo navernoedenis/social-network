@@ -1,10 +1,10 @@
 import { db } from '@/db';
 import {
-  emailVerifications,
   passwords,
   profiles,
   settings,
   users,
+  verifications,
 } from '@/db/files/entities';
 
 import { getErrorMessage, getExpiredAt } from '@/utils/helpers';
@@ -21,7 +21,7 @@ class AuthService {
     email: string;
     password: string;
     verificationToken: string;
-  }): Promise<ExecutionResult<User>> {
+  }): ExecutionResult<User> {
     try {
       let newUser!: User;
 
@@ -37,10 +37,10 @@ class AuthService {
           userId: user.id,
         });
 
-        await ctx.insert(emailVerifications).values({
+        await ctx.insert(verifications).values({
+          type: 'email',
           userId: user.id,
-          email: user.email,
-          token: verificationToken,
+          payload: verificationToken,
           expiredAt: getExpiredAt(15, 'minutes'),
         });
 

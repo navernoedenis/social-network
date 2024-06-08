@@ -19,6 +19,6 @@ export type HttpError = {
   message: string;
 };
 
-export type ExecutionResult<T> =
-  | { data: T; error?: never }
-  | { data?: never; error: string };
+export type ExecutionResult<T> = Promise<
+  { data: T; error?: never } | { data?: never; error: string }
+>;

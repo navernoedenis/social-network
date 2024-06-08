@@ -24,3 +24,11 @@ export const signUpSchema = z
   .refine((schema) => schema.password === schema.confirmPassword, {
     message: "Passwords don't match",
   });
+
+export const forgotPasswordSchema = z.object({
+  email,
+});
+
+export const updatePasswordSchema = z.object({
+  password,
+});

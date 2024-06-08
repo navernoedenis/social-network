@@ -11,6 +11,13 @@ class PasswordsService {
 
     return password as Password;
   }
+
+  async updatePassword(userId: number, newPassword: string) {
+    await db
+      .update(passwords)
+      .set({ hash: newPassword })
+      .where(eq(passwords.userId, userId));
+  }
 }
 
 export const passwordsService = new PasswordsService();

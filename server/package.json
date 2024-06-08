@@ -10,7 +10,7 @@
     "format:check": "npx prettier . --check",
     "format:fix": "npx prettier . --write",
     "test:unit": "npx jest",
-    "db:create": "npx drizzle-kit generate $npm_package_config_drizzle_kit",
+    "db:create": "drizzle-kit generate $npm_package_config_drizzle_kit",
     "db:push": "drizzle-kit push $npm_package_config_drizzle_kit",
     "db:seed": "npx tsx ./src/db/seed.ts",
     "prepare": "cd .. && husky ./server/.husky",

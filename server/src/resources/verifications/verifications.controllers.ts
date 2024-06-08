@@ -11,7 +11,31 @@ import { BadRequest, createToken } from '@/utils/helpers';
 import { profilesService } from '@/resources/profiles';
 import { verificationsService } from './verifications.service';
 
-export const verifyEmail = async (
+export const newEmailVerification = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const user = req.user!;
+
+  try {
+    await verificationsService.createEmailVerification({
+      userId: user.id,
+      payload: createToken(),
+    });
+
+    res.status(httpStatus.OK).json({
+      success: true,
+      statusCode: httpStatus.OK,
+      data: null,
+      message: 'A new verify link has been created and send on your email! ✅',
+    } as HttpResponse);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const verifyEmailToken = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -32,33 +56,6 @@ export const verifyEmail = async (
       statusCode: httpStatus.OK,
       data: null,
       message: 'Your email address has been verified! 👍',
-    } as HttpResponse);
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const newEmailVerification = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const user = req.user!;
-
-    const { error } = await verificationsService.createEmailVerification({
-      userId: user.id,
-      email: user.email,
-      token: createToken(),
-    });
-
-    if (error) throw new BadRequest(error);
-
-    res.status(httpStatus.OK).json({
-      success: true,
-      statusCode: httpStatus.OK,
-      data: null,
-      message: 'A new verify link has been created and send on your email! ✅',
     } as HttpResponse);
   } catch (error) {
     next(error);

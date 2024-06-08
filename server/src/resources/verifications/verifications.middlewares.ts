@@ -31,9 +31,9 @@ export const checkIsEmailVerificationExists = async (
   const user = req.user!;
 
   try {
-    const verification = await verificationsService.getEmailVerification(
-      user.id
-    );
+    const verification = await verificationsService.getEmailVerification({
+      userId: user.id,
+    });
 
     if (verification) {
       const message =

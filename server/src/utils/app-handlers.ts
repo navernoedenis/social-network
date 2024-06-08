@@ -32,9 +32,11 @@ export class AppHandlers {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     next: NextFunction
   ) => {
-    res.status(error.statusCode).json({
+    const statusCode = error.statusCode ?? httpStatus.INTERNAL_SERVER_ERROR;
+
+    res.status(statusCode).json({
       error: error.message,
-      statusCode: error.statusCode ?? httpStatus.INTERNAL_SERVER_ERROR,
+      statusCode,
       success: false,
     } as HttpResponse);
   };

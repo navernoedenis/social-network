@@ -2,6 +2,7 @@ import {
   index,
   integer,
   pgTable,
+  text,
   timestamp,
   uuid,
   varchar,
@@ -9,34 +10,20 @@ import {
 
 import { users } from '@/db/files/entities';
 
-export const emailVerifications = pgTable(
-  'email_verifications',
-  {
-    id: uuid('id').defaultRandom().primaryKey(),
-    userId: integer('user_id')
-      .notNull()
-      .references(() => users.id),
-    email: varchar('email', { length: 50 }).notNull().unique(),
-    token: varchar('token', { length: 255 }).notNull(),
-    expiredAt: timestamp('expired_at', { mode: 'date' }).notNull(),
-  },
-  (table) => ({
-    userIdx: index('email_verifications_user_id').on(table.userId),
-    emailIdx: index('email_verifications_email_idx').on(table.email),
-  })
-);
+const types = ['email', 'forgot-password', '2fa'] as const;
 
-export const twoFactorVerifications = pgTable(
-  'two_factor_verifications',
+export const verifications = pgTable(
+  'verifications',
   {
     id: uuid('id').defaultRandom().primaryKey(),
     userId: integer('user_id')
       .notNull()
       .references(() => users.id),
-    otp: varchar('otp', { length: 6 }).notNull(),
+    type: text('type', { enum: types }).notNull(),
+    payload: varchar('payload', { length: 255 }).notNull(), // token, otp password
     expiredAt: timestamp('expired_at', { mode: 'date' }).notNull(),
   },
   (table) => ({
-    userIdx: index('two_factor_verifications_user_idx').on(table.userId),
+    userIdx: index('verifications_user_id').on(table.userId),
   })
 );

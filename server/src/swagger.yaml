@@ -145,7 +145,7 @@ paths:
                         example: Logout successfully
 
   /auth/verify-refresh:
-    get:
+    post:
       tags:
         - auth
       summary: verify refresh token
@@ -158,7 +158,7 @@ paths:
                 type: string
                 example: refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.
                   eyJpZCI6MSwiZW1haWwiOiJkZW5pc0BnbWFpbC5jb20iLCJyb2xlIjoidXNlciIsImlhdCI6MTcxNzY2MjE2MywiZXhwIjoxNzIwMjU0MTYzfQ.
-                  QYQbbxf_oFn1yQz7wTWGawNUldebjUONhMKIIw9MQes; Path=/auth/verify-refresh, HttpOnly
+                  QYQbbxf_oFn1yQz7wTWGawNUldebjUONhMKIIw9MQes; HttpOnly
           content:
             application/json:
               schema:
@@ -191,44 +191,163 @@ paths:
                         type: string
                         example: No refresh token
 
-  /verifications/email/{token}:
-    get:
+  /auth/forgot-password:
+    post:
       tags:
-        - verification
-      summary: verify user email
-      parameters:
-        - in: path
-          name: token
-          schema:
-            type: string
-          required: true
-
+        - auth
+      summary: create forgot password verification
       responses:
         '200':
-          description: verification by email address
+          description:
           content:
             application/json:
               schema:
                 allOf:
                   - $ref: '#/components/replies/ok'
-                  - properties:
+                  - type: object
+                    properties:
                       data:
                         type: object
                         example: null
                       message:
-                        type: object
-                        example: 'Your email address has been verified! 👍'
+                        type: text
+                        example: Forgot password verification was created ✨.
+                          Check you email address
         '400':
-          description: Invalid token
+          description: token was expired
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      statusCode:
+                        type: number
+                        example: 400
+                      message:
+                        type: text
+                        example:
+                          You forgot password verification token has been expired.
+                          Create another one!
+        '401':
+          description: no user with this email
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      statusCode:
+                        type: number
+                        example: 401
+                      message:
+                        type: text
+                        example: No user with this email
+        '409':
+          description: create another verification if one has already been created
           content:
             application/json:
               schema:
                 allOf:
                   - $ref: '#/components/replies/error'
-                  - properties:
+                  - type: object
+                    properties:
+                      statusCode:
+                        type: number
+                        example: 409
                       error:
+                        type: string
+                        example:
+                          You have already created a forgot password verification.
+                          Follow the link which was send on your email
+    patch:
+      tags:
+        - auth
+      summary: update password
+      parameters:
+        - in: cookie
+          name: forgot-password-token
+          type: integer
+          example: 3&263294f3d50849d7608bb57d56f9777a6beed309c7d78723cd24088fe51a5a8aff;
+
+      responses:
+        '200':
+          description: password was update
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      data:
                         type: object
-                        example: 'Invalid token'
+                        example: null
+                      message:
+                        type: text
+                        example: Your password has been updated🤘
+        '400':
+          description: No password token
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      statusCode:
+                        type: number
+                        example: 400
+                      message:
+                        type: text
+                        example: No forgot password token
+
+  /auth/forgot-password/{token}:
+    post:
+      tags:
+        - auth
+      summary: validate forgot password token
+      responses:
+        '200':
+          description:
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: forgot-password-token=
+                  3&263294f3d50849d7608bb57d56f9777a6beed309c7d78723cd24088fe51a5a8aff;
+                  HttpOnly
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        example: null
+                      message:
+                        type: text
+                        example: Forgot password token was verified 🍒
+
+        '400':
+          description:
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - type: object
+                    properties:
+                      statusCode:
+                        type: number
+                        example: 400
+                      error:
+                        type: text
+                        example: Invalid forgot password token"
 
   /verifications/email/new:
     post:
@@ -291,6 +410,45 @@ paths:
                       error:
                         type: string
                         example: Your email is already verified
+
+  /verifications/email/{token}:
+    get:
+      tags:
+        - verification
+      summary: verify user email
+      parameters:
+        - in: path
+          name: token
+          schema:
+            type: string
+          required: true
+
+      responses:
+        '200':
+          description: verification by email address
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - properties:
+                      data:
+                        type: object
+                        example: null
+                      message:
+                        type: object
+                        example: 'Your email address has been verified! 👍'
+        '400':
+          description: Invalid token
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - properties:
+                      error:
+                        type: object
+                        example: 'Invalid token'
 
 components:
   securitySchemes:

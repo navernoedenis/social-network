@@ -2,22 +2,20 @@ import '@/packages';
 import { dbClient } from '@/config/db-client.config';
 
 import { db } from '@/db';
-import { type NewEmailVerification } from '@/db/files/models';
+import { type NewVerification } from '@/db/files/models';
 import {
-  emailVerifications,
   passwords,
   profiles,
   refreshTokens,
   settings,
-  twoFactorVerifications,
   users,
+  verifications,
 } from '@/db/files/entities';
 
 import {
   createProfile,
   createRefreshToken,
   createSettings,
-  createTwoFactorVerification,
   createUser,
 } from '@/db/files/mocks';
 
@@ -54,13 +52,13 @@ const startSeeding = async () => {
         .returning();
 
       if (!profile.isVerified) {
-        const emailVerificationData: NewEmailVerification = {
+        const verificationData: NewVerification = {
+          type: 'email',
           userId: user.id,
-          email: user.email,
-          token: createToken(),
+          payload: createToken(),
           expiredAt: getExpiredAt(2, 'hours'),
         };
-        await db.insert(emailVerifications).values(emailVerificationData);
+        await db.insert(verifications).values(verificationData);
       }
 
       const settingsData = createSettings(user.id);
@@ -73,11 +71,12 @@ const startSeeding = async () => {
           is2faEnabled: true,
         });
 
-        const twoFAData = createTwoFactorVerification({
+        await db.insert(verifications).values({
+          type: '2fa',
           userId: user.id,
+          payload: createToken(),
           expiredAt: getExpiredAt(5, 'minutes'),
         });
-        await db.insert(twoFactorVerifications).values(twoFAData);
 
         for (let i = 0; i < 3; i++) {
           const tokenData = createRefreshToken({

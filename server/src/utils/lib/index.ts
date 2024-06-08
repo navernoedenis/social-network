@@ -1,3 +1,4 @@
+export * from './express';
 export * from './hash';
 export * from './jwt-token';
 export * from './logger';
