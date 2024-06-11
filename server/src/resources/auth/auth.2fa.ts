@@ -10,10 +10,12 @@ import { usersService } from '@/resources/users';
 import { verificationsService } from '@/resources/verifications';
 
 import { authCookie, httpStatus } from '@/utils/constants';
-import { createSecureCookieOptions } from '@/utils/lib';
 import {
   checkIsExpired,
   createOtpPassword,
+  createSecureCookieOptions,
+  decryptData,
+  encryptData,
   getExpiredAt,
   Unauthorized,
 } from '@/utils/helpers';
@@ -96,16 +98,13 @@ export const twoFactorAuthentication = async (
         rememberMe: loginDto.rememberMe,
       });
 
-      // Todo: encrypt payload data
-      const encryptedTwoFaPayload = twoFaPayload;
-
-      const minutes = 5;
-      const expiredAt = getExpiredAt(minutes, 'minutes');
+      const minutesExp = 5;
+      const expiredAt = getExpiredAt(minutesExp, 'minutes');
 
       await Promise.all([
         verificationsService.create2FAVerification({
           userId: user.id,
-          payload: encryptedTwoFaPayload,
+          payload: encryptData(twoFaPayload),
           expiredAt,
         }),
         emailService.sendEmail({
@@ -126,7 +125,7 @@ export const twoFactorAuthentication = async (
           data: null,
           message:
             '2FA verification has been created. ' +
-            `You have ${minutes} minutes before 2FA code be expired`,
+            `You have ${minutesExp} minutes before 2FA code be expired`,
         } as HttpResponse);
     }
 
@@ -155,8 +154,8 @@ export const twoFactorAuthentication = async (
           success: false,
           statusCode: httpStatus.UNAUTHORIZED,
           error:
-            'Too late. You 2FA verification was expired. ' +
-            'Try one more time to login',
+            'Too late. Your 2FA verification was expired. ' +
+            'Try to login one more time',
         } as HttpResponse);
     }
 
@@ -165,10 +164,10 @@ export const twoFactorAuthentication = async (
       throw new Unauthorized('Have no 2FA password');
     }
 
-    // Todo: decrypt payload data
-    const decryptedTwoFaPayload = twoFaVerification.payload;
+    const twoFaPayload = parseTwoFaPayload(
+      decryptData(twoFaVerification.payload)
+    );
 
-    const twoFaPayload = parseTwoFaPayload(decryptedTwoFaPayload);
     if (twoFaPayload.otp !== twoFaDto.otp) {
       throw new Unauthorized('Wrong 2FA password');
     }

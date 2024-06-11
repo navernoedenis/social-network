@@ -6,33 +6,31 @@ import {
 } from '@/types/main';
 
 import { authService } from '@/resources/auth';
+import { emailService } from '@/utils/services';
 import { passwordsService } from '@/resources/passwords';
+import { sessionsTokensService } from '@/resources/session-tokens';
 import { usersService } from '@/resources/users';
 import { verificationsService } from '@/resources/verifications';
 
-import { emailService } from '@/utils/services';
-
 import { authCookie, httpStatus } from '@/utils/constants';
-import {
-  createHash,
-  createJwtTokens,
-  createLink,
-  createSecureCookieOptions,
-  verifyHash,
-  verifyJwtToken,
-} from '@/utils/lib';
-
 import {
   BadRequest,
   checkIsExpired,
   Conflict,
+  createCookieTokenWithOptions,
+  createHash,
+  createJwtTokens,
+  createLink,
+  createSecureCookieOptions,
   createToken,
   getExpiredAt,
   InternalServerError,
+  parseCookieToken,
   Unauthorized,
+  verifyHash,
+  verifyJwtToken,
 } from '@/utils/helpers';
 
-import { createCookieTokenWithOptions, parseCookieToken } from './auth.helpers';
 import {
   type ForgotPasswordDto,
   type LoginDto,
@@ -76,7 +74,7 @@ export const signup = async (
 
     const message =
       'Congratulations, your account has been successfully created. ' +
-      'Please, check your email. We sent a verification link on your email';
+      'We sent a verification link. Please, check your email';
 
     res.status(httpStatus.OK).json({
       success: true,
@@ -105,9 +103,22 @@ export const login = async (
     }
 
     const password = await passwordsService.getUserPassword(user.id);
+
     const isPasswordsMatch = await verifyHash(loginDto.password, password.hash);
     if (!isPasswordsMatch) {
-      throw new Unauthorized('Wrong password');
+      return (
+        res
+          .status(httpStatus.BAD_REQUEST)
+          // If user has 2FA-authentication and passwords
+          // do not match, we have to remove 2FA-cookie,
+          // and they have to repeat all steps from beginning.
+          .clearCookie(authCookie.twoFA)
+          .json({
+            success: false,
+            statusCode: httpStatus.BAD_REQUEST,
+            error: 'Wrong user password. Try to login one more time',
+          } as HttpResponse)
+      );
     }
 
     const tokenPayload = {
@@ -116,8 +127,13 @@ export const login = async (
       role: user.role,
     };
 
-    const { accessToken, refreshToken } = createJwtTokens(tokenPayload);
-    const cookieToken = createCookieTokenWithOptions(refreshToken, {
+    const newTokens = createJwtTokens(tokenPayload);
+    await sessionsTokensService.createOne(req, {
+      userId: user.id,
+      token: newTokens.refreshToken,
+    });
+
+    const cookieToken = createCookieTokenWithOptions(newTokens.refreshToken, {
       rememberMe: loginDto.rememberMe,
     });
 
@@ -128,7 +144,7 @@ export const login = async (
         success: true,
         statusCode: httpStatus.OK,
         data: {
-          accessToken,
+          accessToken: newTokens.accessToken,
           user,
         },
         message: 'Login successfully',
@@ -138,30 +154,41 @@ export const login = async (
   }
 };
 
-export const logout = async (req: Request, res: Response) => {
-  res
-    .status(httpStatus.OK)
-    .clearCookie(authCookie.refreshToken)
-    .json({
-      success: true,
-      statusCode: httpStatus.OK,
-      data: null,
-      message: 'Logout successfully',
-    } as HttpResponse);
-};
-
-export const verifyCookieToken = (
+export const logout = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  try {
-    const { hasToken, isExpired, refreshToken } = parseCookieToken(req.cookies);
+  const { refreshToken } = parseCookieToken(req.cookies);
 
-    if (!hasToken) {
-      throw new Unauthorized('No refresh token');
+  try {
+    if (refreshToken) {
+      await sessionsTokensService.deleteOne(refreshToken);
     }
 
+    res
+      .status(httpStatus.OK)
+      .clearCookie(authCookie.refreshToken)
+      .json({
+        success: true,
+        statusCode: httpStatus.OK,
+        data: null,
+        message: 'Logout successfully',
+      } as HttpResponse);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateTokens = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const cookieToken = parseCookieToken(req.cookies);
+  const refreshToken = cookieToken.refreshToken!;
+
+  try {
     const user = verifyJwtToken(refreshToken, 'refresh');
     if (!user) {
       throw new Unauthorized('Invalid refresh token');
@@ -174,19 +201,29 @@ export const verifyCookieToken = (
     };
 
     const newTokens = createJwtTokens(tokenPayload);
-    const cookieToken = createCookieTokenWithOptions(newTokens.refreshToken, {
-      rememberMe: !isExpired,
+    const newCookieToken = createCookieTokenWithOptions(
+      newTokens.refreshToken,
+      {
+        rememberMe: !cookieToken.isExpired,
+      }
+    );
+
+    await sessionsTokensService.createOne(req, {
+      userId: user.id,
+      token: newTokens.refreshToken,
     });
 
     res
       .status(httpStatus.OK)
-      .cookie(authCookie.refreshToken, cookieToken.token, cookieToken.options)
+      .cookie(
+        authCookie.refreshToken,
+        newCookieToken.token,
+        newCookieToken.options
+      )
       .json({
         success: true,
         statusCode: httpStatus.OK,
-        data: {
-          accessToken: newTokens.accessToken,
-        },
+        data: newTokens.accessToken,
         message: 'You have received a new pair of tokens! 🍐🍏',
       } as HttpResponse);
   } catch (error) {
@@ -269,7 +306,6 @@ export const verifyForgotPasswordToken = async (
 
   try {
     const [userId, token] = passwordToken.split('&');
-
     if (!userId || !token) {
       throw new BadRequest('Invalid forgot password token');
     }

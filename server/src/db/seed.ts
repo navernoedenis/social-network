@@ -6,7 +6,7 @@ import { type NewVerification } from '@/db/files/models';
 import {
   passwords,
   profiles,
-  refreshTokens,
+  sessionTokens,
   settings,
   users,
   verifications,
@@ -14,13 +14,19 @@ import {
 
 import {
   createProfile,
-  createRefreshToken,
+  createSessionToken,
   createSettings,
   createUser,
 } from '@/db/files/mocks';
 
-import { createHash, createJwtToken, print } from '@/utils/lib';
-import { createToken, getErrorMessage, getExpiredAt } from '@/utils/helpers';
+import { print } from '@/utils/lib';
+import {
+  createHash,
+  createJwtToken,
+  createToken,
+  getErrorMessage,
+  getExpiredAt,
+} from '@/utils/helpers';
 
 const startSeeding = async () => {
   try {
@@ -79,7 +85,7 @@ const startSeeding = async () => {
         });
 
         for (let i = 0; i < 3; i++) {
-          const tokenData = createRefreshToken({
+          const sessionToken = createSessionToken({
             userId: user.id,
             token: createJwtToken(
               {
@@ -91,7 +97,7 @@ const startSeeding = async () => {
             ),
             expiredAt: getExpiredAt(30, 'days'),
           });
-          await db.insert(refreshTokens).values(tokenData);
+          await db.insert(sessionTokens).values(sessionToken);
         }
       }
     }

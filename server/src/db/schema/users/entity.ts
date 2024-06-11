@@ -11,9 +11,11 @@ import {
 import {
   passwords,
   profiles,
-  refreshTokens,
+  sessionTokens,
   settings,
 } from '@/db/files/entities';
+
+const roles = ['user', 'admin', 'root'] as const;
 
 export const users = pgTable(
   'users',
@@ -24,9 +26,7 @@ export const users = pgTable(
     photo: text('photo'),
     firstname: varchar('firstname', { length: 50 }),
     lastname: varchar('lastname', { length: 50 }),
-    role: text('role', { enum: ['user', 'admin', 'root'] })
-      .notNull()
-      .default('user'),
+    role: text('role', { enum: roles }).notNull().default('user'),
   },
   (table) => ({
     emailIdx: uniqueIndex('users_email_idx').on(table.email),
@@ -47,5 +47,5 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     fields: [users.id],
     references: [settings.userId],
   }),
-  tokens: many(refreshTokens),
+  tokens: many(sessionTokens),
 }));

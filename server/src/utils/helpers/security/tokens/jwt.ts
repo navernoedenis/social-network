@@ -1,8 +1,9 @@
 import jwt from 'jsonwebtoken';
 import { ENV } from '@/app/env';
-import { print } from '@/utils/lib';
-import { getErrorMessage } from '@/utils/helpers';
 import { type AuthUser } from '@/types/main';
+
+import { getErrorMessage } from '@/utils/helpers';
+import { print } from '@/utils/lib';
 
 type JwtType = 'access' | 'refresh';
 

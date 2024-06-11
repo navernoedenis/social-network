@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import { validateBody, isAuthorized } from '@/utils/middlewares';
+import { isAuthorized, validateBody } from '@/utils/middlewares';
 import { newEmailVerificationSchema } from './verifications.schemas';
 import {
-  verifyEmailToken,
   newEmailVerification,
+  verifyEmailToken,
 } from './verifications.controllers';
 import {
   checkIsEmailVerificationExists,

@@ -1,9 +1,5 @@
-import { type CookieOptions, type Request } from 'express';
+import { type CookieOptions } from 'express';
 import { ENV } from '@/app/env';
-
-export const createLink = (req: Request, config: { path: string }): string => {
-  return `${req.protocol}://${req.headers.host}${config.path}`;
-};
 
 export const createSecureCookieOptions = (
   config: CookieOptions = {}

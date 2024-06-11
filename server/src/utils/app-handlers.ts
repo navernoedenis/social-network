@@ -10,18 +10,18 @@ import {
 export class AppHandlers {
   static testHandler = (req: Request, res: Response) => {
     res.status(httpStatus.OK).json({
+      success: true,
+      statusCode: httpStatus.OK,
       data: null,
       message: 'Test works! :)',
-      statusCode: httpStatus.OK,
-      success: true,
     } as HttpResponse);
   };
 
   static notFoundtHandler = (req: Request, res: Response) => {
     res.status(httpStatus.NOT_FOUND).json({
-      error: 'The endpoint you have tried to access does not exist',
-      statusCode: httpStatus.NOT_FOUND,
       success: false,
+      statusCode: httpStatus.NOT_FOUND,
+      error: 'The endpoint you have tried to access does not exist',
     } as HttpResponse);
   };
 
@@ -35,9 +35,9 @@ export class AppHandlers {
     const statusCode = error.statusCode ?? httpStatus.INTERNAL_SERVER_ERROR;
 
     res.status(statusCode).json({
-      error: error.message,
-      statusCode,
       success: false,
+      statusCode,
+      error: error.message,
     } as HttpResponse);
   };
 }

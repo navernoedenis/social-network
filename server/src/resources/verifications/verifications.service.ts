@@ -1,14 +1,15 @@
 import { and, eq } from 'drizzle-orm';
 import { db } from '@/db';
 import { verifications } from '@/db/files/entities';
-
 import { type Verification, type VerificationType } from '@/db/files/models';
+
+import { checkIsExpired, getErrorMessage, getExpiredAt } from '@/utils/helpers';
+
+import { type ExecutionResult } from '@/types/main';
 import {
   type CreateVerificationConfig,
   type GetVerificationConfig,
 } from './verifications.types';
-import { type ExecutionResult } from '@/types/main';
-import { checkIsExpired, getErrorMessage, getExpiredAt } from '@/utils/helpers';
 
 class VerificationsService {
   async create2FAVerification(config: CreateVerificationConfig) {

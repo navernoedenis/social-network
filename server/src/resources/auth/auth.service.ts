@@ -1,4 +1,5 @@
 import { db } from '@/db';
+import { type User } from '@/db/files/models';
 import {
   passwords,
   profiles,
@@ -7,10 +8,8 @@ import {
   verifications,
 } from '@/db/files/entities';
 
-import { getErrorMessage, getExpiredAt } from '@/utils/helpers';
-
-import { type User } from '@/db/files/models';
 import { type ExecutionResult } from '@/types/main';
+import { getErrorMessage, getExpiredAt } from '@/utils/helpers';
 
 class AuthService {
   async signUp({

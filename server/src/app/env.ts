@@ -17,6 +17,9 @@ const ENV_SCHEMA = z.object({
 
   JWT_ACCESS_SECRET: z.string().trim().min(1),
   JWT_REFRESH_SECRET: z.string().trim().min(1),
+
+  ENCRYPT_SECRET_KEY: z.string().trim().length(32),
+  ENCRYPT_IV_KEY: z.string().trim().length(16),
 });
 
 const printErrors = (errors: ZodIssue[]) => {

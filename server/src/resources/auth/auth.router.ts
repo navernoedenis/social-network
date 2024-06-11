@@ -1,17 +1,21 @@
 import { Router } from 'express';
-import { validateBody } from '@/utils/middlewares';
+import {
+  checkCookieToken,
+  validateBody,
+  verifyCookieToken,
+} from '@/utils/middlewares';
+
 import {
   forgotPassword,
   login,
   logout,
   signup,
   updatePassword,
-  verifyCookieToken,
+  updateTokens,
   verifyForgotPasswordToken,
 } from './auth.controllers';
 
 import { twoFactorAuthentication } from './auth.2fa';
-
 import {
   forgotPasswordSchema,
   loginSchema,
@@ -25,7 +29,7 @@ authRouter
   .post('/signup', validateBody(signUpSchema), signup)
   .post('/login', validateBody(loginSchema), twoFactorAuthentication, login)
   .post('/logout', logout)
-  .post('/verify-token', verifyCookieToken)
+  .post('/verify-token', checkCookieToken, verifyCookieToken, updateTokens)
   .post('/forgot-password', validateBody(forgotPasswordSchema), forgotPassword)
   .post('/forgot-password/:token', verifyForgotPasswordToken)
   .patch(

@@ -1,4 +1,4 @@
-import { MILLISECONDS_IN } from './constants';
+import { MILLISECONDS_IN } from './date.constants';
 
 export const getExpiredAt = (
   value: number,

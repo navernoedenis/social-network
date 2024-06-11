@@ -5,16 +5,18 @@ import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import helmet from 'helmet';
+import useragent from 'express-useragent';
 
 import { ENV } from '@/app/env';
 import { logger } from '@/utils/lib';
 
 export const middlewares: RequestHandler[] = [
-  getCors(),
-  helmet(),
-  cookieParser(),
   bodyParser.json(),
   bodyParser.urlencoded({ extended: false }),
+  cookieParser(),
+  getCors(),
+  helmet(),
+  useragent.express(),
 ];
 
 if (ENV.IS_DEVELOPMENT) {

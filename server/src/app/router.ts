@@ -7,6 +7,9 @@ import yaml from 'yaml';
 import { AppHandlers } from '@/utils/app-handlers';
 import { authRouter } from '@/resources/auth';
 import { ENV } from '@/app/env';
+import { isAuthorized } from '@/utils/middlewares';
+
+import { sessionTokensRouter } from '@/resources/session-tokens';
 import { verificationsRouter } from '@/resources/verifications';
 
 export const router = Router();
@@ -21,6 +24,9 @@ if (ENV.IS_DEVELOPMENT) {
 
 router.use('/auth', authRouter);
 router.use('/verifications', verificationsRouter);
+
+router.use('/api', isAuthorized);
+router.use('/api/v1/session-tokens', sessionTokensRouter);
 
 router.get('/test', AppHandlers.testHandler);
 router.use('*', AppHandlers.notFoundtHandler);

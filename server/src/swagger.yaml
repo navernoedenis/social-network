@@ -10,6 +10,8 @@ tags:
     description: access to social network
   - name: verification
     description: social network verification
+  - name: session tokens
+    description: manage your's session tokens
 
 paths:
   /auth/login:
@@ -35,7 +37,7 @@ paths:
                   - type: object
                     properties:
                       data:
-                        $ref: '#/components/schemas/user_profile'
+                        $ref: '#/components/schemas/user_and_profile'
         '400':
           description: Invalid fields
           content:
@@ -167,11 +169,10 @@ paths:
                   - type: object
                     properties:
                       data:
-                        type: object
-                        example:
-                          accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.
-                            eyJpZCI6MSwiZW1haWwiOiJkZW5pc0BnbWFpbC5jb20iLCJyb2xlIjoidXNlciIsImlhdCI6MTcxNzY2MjE2MywiZXhwIjoxNzE3NjYzMDYzfQ.
-                            CD7ExOJ9KMDRI11sjOPrRNBfOz6KTuTM876JfJwweXc
+                        type: string
+                        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.
+                          eyJpZCI6MSwiZW1haWwiOiJkZW5pc0BnbWFpbC5jb20iLCJyb2xlIjoidXNlciIsImlhdCI6MTcxNzY2MjE2MywiZXhwIjoxNzE3NjYzMDYzfQ.
+                          CD7ExOJ9KMDRI11sjOPrRNBfOz6KTuTM876JfJwweXc
                       message:
                         type: text
                         example: You have received a new pair of tokens! 🍐🍏
@@ -450,6 +451,124 @@ paths:
                         type: object
                         example: 'Invalid token'
 
+  /api/v1/session-tokens:
+    get:
+      tags:
+        - session tokens
+      security:
+        - bearerToken: []
+      summary: get all my session tokens
+      responses:
+        '200':
+          description: receive list of my tokens
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/sessionToken'
+
+                      message:
+                        type: text
+                        example: You've received your refresh tokens
+
+        '401':
+          description: Token issue
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - type: object
+                    properties:
+                      statusCode:
+                        type: number
+                        example: 401
+                      error:
+                        type: string
+                        example: Invalid or no token
+
+  /api/v1/session-tokens/{id}:
+    delete:
+      tags:
+        - session tokens
+      security:
+        - bearerToken: []
+      summary: revoke session token
+      responses:
+        '200':
+          description: revoke token
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      message:
+                        type: text
+                        example: You token has been revoked!
+
+        '400':
+          description: token doesn't exists
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - type: object
+                    properties:
+                      statusCode:
+                        type: number
+                        example: 400
+                      error:
+                        type: string
+                        example: Token doesn't exists
+
+  /api/v1/session-tokens/all:
+    delete:
+      tags:
+        - session tokens
+      security:
+        - bearerToken: []
+      summary: revoke all my session tokens except current one
+      responses:
+        '200':
+          description: revoke session tokens
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/sessionToken'
+                      message:
+                        type: text
+                        example: You tokens has been revoked!
+
+          '401':
+            description: bearer token is invalid or expired
+            content:
+              application/json:
+                schema:
+                  allOf:
+                    - $ref: '#/components/replies/error'
+                    - type: object
+                      properties:
+                        statusCode:
+                          type: number
+                          example: 400
+                        error:
+                          type: string
+                          example: No bearer token
+
 components:
   securitySchemes:
     bearerToken:
@@ -514,12 +633,39 @@ components:
           type: date
           example: 2024-06-05T15:02:57.345Z
 
-    user_profile:
+    user_and_profile:
       allOf:
         - $ref: '#/components/schemas/user'
         - properties:
             profile:
               $ref: '#/components/schemas/profile'
+
+    sessionToken:
+      type: object
+      properties:
+        id:
+          type: string
+          example: f9b5918d-c501-4bc3-99ab-0a3d8de09e9c
+        userId:
+          type: number
+          example: 1
+        token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.
+            eyJpZCI6MSwiZW1haWwiOiJkZW5pc0BnbWFpbC5jb20iLCJyb2xlIjoidXNlciIsImlhdCI6MTcxODEwNTkwMSwiZXhwIjoxNzIwNjk3OTAxfQ.
+            pz9Jw-tL2c7tmxXKgshFaUOiPyCk9xhKq-9b5E6Mi4Q
+        browser:
+          type: string
+          example: firefox
+        os:
+          type: string
+          example: linux
+        ip:
+          type: string
+          example: ' 172.19.0.1'
+        expiredAt:
+          type: date
+          example: '2024-07-11T12:55:40.509Z'
 
   forms:
     login:

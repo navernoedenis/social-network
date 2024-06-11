@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker';
-import { type NewRefreshToken } from './model';
+import { type NewSessionToken } from './model';
 
-export const createRefreshToken = ({
+export const createSessionToken = ({
   expiredAt,
   token,
   userId,
@@ -9,7 +9,7 @@ export const createRefreshToken = ({
   expiredAt: Date;
   token: string;
   userId: number;
-}): NewRefreshToken => ({
+}): NewSessionToken => ({
   userId,
   browser: faker.helpers.arrayElement([
     'brave',
@@ -21,8 +21,15 @@ export const createRefreshToken = ({
     'opera',
     'safari',
     'vivaldi',
+    'unknown',
   ]),
-  os: faker.helpers.arrayElement(['linux', 'macos', 'windows', 'android']),
+  os: faker.helpers.arrayElement([
+    'linux',
+    'macos',
+    'windows',
+    'android',
+    'unknown',
+  ]),
   ip: faker.internet.ipv4(),
   token,
   expiredAt,
