@@ -4,7 +4,7 @@ import { db } from '@/db';
 import { passwords } from '@/db/files/entities';
 
 class PasswordsService {
-  async getUserPassword(userId: number) {
+  async getPassword(userId: number) {
     const password = await db.query.passwords.findFirst({
       where: eq(passwords.userId, userId),
     });

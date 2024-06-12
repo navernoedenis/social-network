@@ -9,6 +9,7 @@ import { authRouter } from '@/resources/auth';
 import { ENV } from '@/app/env';
 import { isAuthorized } from '@/utils/middlewares';
 
+import { profilesRouter } from '@/resources/profiles';
 import { sessionTokensRouter } from '@/resources/session-tokens';
 import { verificationsRouter } from '@/resources/verifications';
 
@@ -23,9 +24,10 @@ if (ENV.IS_DEVELOPMENT) {
 }
 
 router.use('/auth', authRouter);
-router.use('/verifications', verificationsRouter);
+router.use('/verification', verificationsRouter);
 
 router.use('/api', isAuthorized);
+router.use('/api/v1/profile', profilesRouter);
 router.use('/api/v1/session-tokens', sessionTokensRouter);
 
 router.get('/test', AppHandlers.testHandler);

@@ -6,18 +6,20 @@ info:
   version: 1.0.0
 
 tags:
-  - name: auth
+  - name: Auth
     description: access to social network
-  - name: verification
-    description: social network verification
-  - name: session tokens
+  - name: Session tokens
     description: manage your's session tokens
+  - name: Profile
+    description: profile settings
+  - name: Verification
+    description: social network verification
 
 paths:
   /auth/login:
     post:
       tags:
-        - auth
+        - Auth
       summary: login user
       requestBody:
         required: true
@@ -69,7 +71,7 @@ paths:
   /auth/signup:
     post:
       tags:
-        - auth
+        - Auth
       summary: signup user
       requestBody:
         required: true
@@ -127,7 +129,7 @@ paths:
   /auth/logout:
     post:
       tags:
-        - auth
+        - Auth
       summary: logout user
       responses:
         '200':
@@ -149,7 +151,7 @@ paths:
   /auth/verify-refresh:
     post:
       tags:
-        - auth
+        - Auth
       summary: verify refresh token
       responses:
         '200':
@@ -195,7 +197,7 @@ paths:
   /auth/forgot-password:
     post:
       tags:
-        - auth
+        - Auth
       summary: create forgot password verification
       responses:
         '200':
@@ -265,7 +267,7 @@ paths:
                           Follow the link which was send on your email
     patch:
       tags:
-        - auth
+        - Auth
       summary: update password
       parameters:
         - in: cookie
@@ -308,7 +310,7 @@ paths:
   /auth/forgot-password/{token}:
     post:
       tags:
-        - auth
+        - Auth
       summary: validate forgot password token
       responses:
         '200':
@@ -350,10 +352,233 @@ paths:
                         type: text
                         example: Invalid forgot password token"
 
-  /verifications/email/new:
+  /api/v1/profile/phone:
+    put:
+      tags:
+        - Profile
+      security:
+        - bearerToken: []
+      summary: update user password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone:
+                  type: string
+                  example: +38 (097) 777-8899
+
+  /api/v1/profile/phone/confirm:
     post:
       tags:
-        - verification
+        - Profile
+      security:
+        - bearerToken: []
+      summary: confirm changin phone number with otp password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                otp:
+                  type: number
+                  example: 583450
+
+      responses:
+        '200':
+          description: phone number was confirmed
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      error:
+                        type: string
+                        example: You phone number has been confirmed ✅
+        '400':
+          description: wrong otp password
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - type: object
+                    properties:
+                      error:
+                        type: string
+                        example: Passwords do not match
+
+  /api/v1/profile/password:
+    put:
+      tags:
+        - Profile
+      security:
+        - bearerToken: []
+      summary: update user phone number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/forms/update_password'
+
+      responses:
+        '200':
+          description: update current password
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        example: null
+                      message:
+                        type: text
+                        example: Your password has been updated 🔒
+        '400':
+          description: current password do not match
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - type: object
+                    properties:
+                      error:
+                        type: string
+                        example: Your new password is the same like current one
+
+  /api/v1/session-tokens:
+    get:
+      tags:
+        - Session tokens
+      security:
+        - bearerToken: []
+      summary: get all my session tokens
+      responses:
+        '200':
+          description: receive list of my tokens
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/sessionToken'
+
+                      message:
+                        type: text
+                        example: You've received your refresh tokens
+
+        '401':
+          description: Token issue
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - type: object
+                    properties:
+                      statusCode:
+                        type: number
+                        example: 401
+                      error:
+                        type: string
+                        example: Invalid or no token
+
+  /api/v1/session-tokens/{id}:
+    delete:
+      tags:
+        - Session tokens
+      security:
+        - bearerToken: []
+      summary: revoke session token
+      responses:
+        '200':
+          description: revoke token
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      message:
+                        type: text
+                        example: You token has been revoked!
+
+        '400':
+          description: token doesn't exists
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - type: object
+                    properties:
+                      statusCode:
+                        type: number
+                        example: 400
+                      error:
+                        type: string
+                        example: Token doesn't exists
+
+  /api/v1/session-tokens/all:
+    delete:
+      tags:
+        - Session tokens
+      security:
+        - bearerToken: []
+      summary: revoke all my session tokens except current one
+      responses:
+        '200':
+          description: revoke session tokens
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/sessionToken'
+                      message:
+                        type: text
+                        example: You tokens has been revoked!
+
+          '401':
+            description: bearer token is invalid or expired
+            content:
+              application/json:
+                schema:
+                  allOf:
+                    - $ref: '#/components/replies/error'
+                    - type: object
+                      properties:
+                        statusCode:
+                          type: number
+                          example: 400
+                        error:
+                          type: string
+                          example: No bearer token
+
+  /verification/email/new:
+    post:
+      tags:
+        - Verification
       security:
         - bearerToken: []
       summary: new verification email link
@@ -412,10 +637,10 @@ paths:
                         type: string
                         example: Your email is already verified
 
-  /verifications/email/{token}:
+  /verification/email/{token}:
     get:
       tags:
-        - verification
+        - Verification
       summary: verify user email
       parameters:
         - in: path
@@ -450,124 +675,6 @@ paths:
                       error:
                         type: object
                         example: 'Invalid token'
-
-  /api/v1/session-tokens:
-    get:
-      tags:
-        - session tokens
-      security:
-        - bearerToken: []
-      summary: get all my session tokens
-      responses:
-        '200':
-          description: receive list of my tokens
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/replies/ok'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/sessionToken'
-
-                      message:
-                        type: text
-                        example: You've received your refresh tokens
-
-        '401':
-          description: Token issue
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/replies/error'
-                  - type: object
-                    properties:
-                      statusCode:
-                        type: number
-                        example: 401
-                      error:
-                        type: string
-                        example: Invalid or no token
-
-  /api/v1/session-tokens/{id}:
-    delete:
-      tags:
-        - session tokens
-      security:
-        - bearerToken: []
-      summary: revoke session token
-      responses:
-        '200':
-          description: revoke token
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/replies/ok'
-                  - type: object
-                    properties:
-                      message:
-                        type: text
-                        example: You token has been revoked!
-
-        '400':
-          description: token doesn't exists
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/replies/error'
-                  - type: object
-                    properties:
-                      statusCode:
-                        type: number
-                        example: 400
-                      error:
-                        type: string
-                        example: Token doesn't exists
-
-  /api/v1/session-tokens/all:
-    delete:
-      tags:
-        - session tokens
-      security:
-        - bearerToken: []
-      summary: revoke all my session tokens except current one
-      responses:
-        '200':
-          description: revoke session tokens
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/replies/ok'
-                  - type: object
-                    properties:
-                      data:
-                        $ref: '#/components/schemas/sessionToken'
-                      message:
-                        type: text
-                        example: You tokens has been revoked!
-
-          '401':
-            description: bearer token is invalid or expired
-            content:
-              application/json:
-                schema:
-                  allOf:
-                    - $ref: '#/components/replies/error'
-                    - type: object
-                      properties:
-                        statusCode:
-                          type: number
-                          example: 400
-                        error:
-                          type: string
-                          example: No bearer token
 
 components:
   securitySchemes:
@@ -693,6 +800,19 @@ components:
         confirmPassword:
           type: boolean
           example: password2024
+
+    update_password:
+      type: object
+      properties:
+        currentPassword:
+          type: string
+          example: 12345678current
+        password:
+          type: string
+          example: 12345678new
+        confirmPassword:
+          type: string
+          example: 12345678new
 
   replies:
     ok:

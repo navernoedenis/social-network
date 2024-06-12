@@ -48,7 +48,7 @@ export const verifyEmailToken = async (
 
     if (!verification) throw new BadRequest(error);
 
-    await profilesService.verifyEmail(verification.userId);
+    await profilesService.switchIsEmailVerified(verification.userId, true);
     await verificationsService.deleteEmailVerification(verification.id);
 
     res.status(httpStatus.OK).json({

@@ -12,28 +12,13 @@ import {
 } from './verifications.types';
 
 class VerificationsService {
+  // 2FA
   async create2FAVerification(config: CreateVerificationConfig) {
     await this.createVerification('2fa', config);
   }
 
-  async createEmailVerification(config: CreateVerificationConfig) {
-    await this.createVerification('email', config);
-  }
-
-  async createForgotPasswordVerification(config: CreateVerificationConfig) {
-    await this.createVerification('forgot-password', config);
-  }
-
   async get2FAVerification(config: GetVerificationConfig) {
     return this.getVerification('2fa', config);
-  }
-
-  async getEmailVerification(config: GetVerificationConfig) {
-    return this.getVerification('email', config);
-  }
-
-  async getForgotPasswordVerification(config: GetVerificationConfig) {
-    return this.getVerification('forgot-password', config);
   }
 
   async delete2FAVerification(verificationId: string) {
@@ -43,11 +28,29 @@ class VerificationsService {
     });
   }
 
+  // Email
+  async createEmailVerification(config: CreateVerificationConfig) {
+    await this.createVerification('email', config);
+  }
+
+  async getEmailVerification(config: GetVerificationConfig) {
+    return this.getVerification('email', config);
+  }
+
   async deleteEmailVerification(verificationId: string) {
     return this.deleteVerification({
       type: 'email',
       verificationId,
     });
+  }
+
+  // Forgot password
+  async createForgotPasswordVerification(config: CreateVerificationConfig) {
+    await this.createVerification('forgot-password', config);
+  }
+
+  async getForgotPasswordVerification(config: GetVerificationConfig) {
+    return this.getVerification('forgot-password', config);
   }
 
   async deleteForgotPasswordVerification(verificationId: string) {
@@ -59,6 +62,22 @@ class VerificationsService {
 
   async checkEmailByToken(token: string) {
     return this.checkToken({ type: 'email', token });
+  }
+
+  // Phone
+  async createPhoneVerification(config: CreateVerificationConfig) {
+    await this.createVerification('phone', config);
+  }
+
+  async getPhoneVerification(config: GetVerificationConfig) {
+    return this.getVerification('phone', config);
+  }
+
+  async deletePhoneVerification(verificationId: string) {
+    return this.deleteVerification({
+      type: 'phone',
+      verificationId,
+    });
   }
 
   private createVerification(

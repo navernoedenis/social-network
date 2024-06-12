@@ -102,7 +102,7 @@ export const login = async (
       throw new Unauthorized('No user with this email');
     }
 
-    const password = await passwordsService.getUserPassword(user.id);
+    const password = await passwordsService.getPassword(user.id);
 
     const isPasswordsMatch = await verifyHash(loginDto.password, password.hash);
     if (!isPasswordsMatch) {

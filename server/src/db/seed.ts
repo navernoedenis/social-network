@@ -57,7 +57,7 @@ const startSeeding = async () => {
         .values(profileData)
         .returning();
 
-      if (!profile.isVerified) {
+      if (!profile.isEmailVerified) {
         const verificationData: NewVerification = {
           type: 'email',
           userId: user.id,

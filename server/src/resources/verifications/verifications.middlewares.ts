@@ -13,7 +13,7 @@ export const checkIsEmailVerified = async (
 
   try {
     const profile = await profilesService.getProfile(user.id);
-    if (profile?.isVerified) {
+    if (profile?.isEmailVerified) {
       throw new Conflict('Your email is already verified');
     }
 

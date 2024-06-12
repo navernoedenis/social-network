@@ -10,7 +10,7 @@ import {
 
 import { users } from '@/db/files/entities';
 
-const types = ['email', 'forgot-password', '2fa'] as const;
+const types = ['2fa', 'email', 'forgot-password', 'phone'] as const;
 
 export const verifications = pgTable(
   'verifications',
@@ -20,7 +20,7 @@ export const verifications = pgTable(
       .notNull()
       .references(() => users.id),
     type: text('type', { enum: types }).notNull(),
-    payload: varchar('payload', { length: 255 }).notNull(), // token, otp password
+    payload: varchar('payload', { length: 255 }).notNull(),
     expiredAt: timestamp('expired_at', { mode: 'date' }).notNull(),
   },
   (table) => ({
