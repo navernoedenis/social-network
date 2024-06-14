@@ -6,23 +6,59 @@ import {
 } from '@/types/main';
 
 import { passwordsService } from '@/resources/passwords';
+import { phoneService } from '@/utils/services';
+import { profilesService } from './profiles.service';
+import { usersService } from '@/resources/users';
 import { verificationsService } from '@/resources/verifications';
 
+import { httpStatus } from '@/utils/constants';
 import {
   BadRequest,
   createHash,
   createOtpPassword,
   verifyHash,
 } from '@/utils/helpers';
-import { phoneService } from '@/utils/services';
-import { httpStatus } from '@/utils/constants';
 
-import { profilesService } from './profiles.service';
 import {
   type ConfirmPhoneDto,
+  type UpdateDataDto,
   type UpdatePasswordDto,
   type UpdatePhoneDto,
 } from './profiles.types';
+
+export const updateData = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { username, ...otherUpdateData } = req.body as UpdateDataDto;
+  const user = req.user!;
+
+  try {
+    const promises: Promise<unknown>[] = [
+      profilesService.updateFields(user.id, otherUpdateData),
+    ];
+
+    const isEmptyString = username?.trim().length === 0;
+    if (!isEmptyString) {
+      const promise = usersService.updateFields(user.id, {
+        username,
+      });
+      promises.push(promise);
+    }
+
+    await Promise.all(promises);
+
+    res.status(httpStatus.OK).json({
+      success: true,
+      statusCode: httpStatus.OK,
+      data: null,
+      message: 'You profile data has been updated 🏡',
+    } as HttpResponse);
+  } catch (error) {
+    next(error);
+  }
+};
 
 export const updatePhone = async (
   req: Request,
@@ -65,12 +101,12 @@ export const updatePhone = async (
 
     await Promise.all([
       profilesService.updatePhone(user.id, updatePhoneDto.phone),
+      phoneService.sendSms({
+        text: `Your phone verification code: ${otp} `,
+      }),
       verificationsService.createPhoneVerification({
         userId: user.id,
         payload: `${otp}`,
-      }),
-      phoneService.sendSms({
-        text: `Your phone verification code: ${otp} `,
       }),
     ]);
 

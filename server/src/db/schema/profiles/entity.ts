@@ -18,7 +18,7 @@ export const profiles = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
 
-    about: varchar('about', { length: 200 }),
+    about: varchar('about', { length: 200 }).notNull().default(''),
     birthday: date('birthday', { mode: 'date' }),
     phone: varchar('phone', { length: 40 }),
 

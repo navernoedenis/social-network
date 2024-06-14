@@ -12,6 +12,8 @@ tags:
     description: manage your's session tokens
   - name: Profile
     description: profile settings
+  - name: Users
+    description: users data
   - name: Verification
     description: social network verification
 
@@ -90,9 +92,6 @@ paths:
                   - $ref: '#/components/replies/ok'
                   - type: object
                     properties:
-                      data:
-                        type: object
-                        example: null
                       message:
                         type: text
                         example: Congratulations, your account has been
@@ -141,9 +140,6 @@ paths:
                   - $ref: '#/components/replies/ok'
                   - type: object
                     properties:
-                      data:
-                        type: object
-                        example: null
                       message:
                         type: text
                         example: Logout successfully
@@ -209,9 +205,6 @@ paths:
                   - $ref: '#/components/replies/ok'
                   - type: object
                     properties:
-                      data:
-                        type: object
-                        example: null
                       message:
                         type: text
                         example: Forgot password verification was created ✨.
@@ -222,13 +215,10 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: '#/components/replies/ok'
+                  - $ref: '#/components/replies/error'
                   - type: object
                     properties:
-                      statusCode:
-                        type: number
-                        example: 400
-                      message:
+                      error:
                         type: text
                         example:
                           You forgot password verification token has been expired.
@@ -239,13 +229,13 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: '#/components/replies/ok'
+                  - $ref: '#/components/replies/error'
                   - type: object
                     properties:
                       statusCode:
                         type: number
                         example: 401
-                      message:
+                      error:
                         type: text
                         example: No user with this email
         '409':
@@ -285,9 +275,6 @@ paths:
                   - $ref: '#/components/replies/ok'
                   - type: object
                     properties:
-                      data:
-                        type: object
-                        example: null
                       message:
                         type: text
                         example: Your password has been updated🤘
@@ -300,9 +287,6 @@ paths:
                   - $ref: '#/components/replies/ok'
                   - type: object
                     properties:
-                      statusCode:
-                        type: number
-                        example: 400
                       message:
                         type: text
                         example: No forgot password token
@@ -329,9 +313,6 @@ paths:
                   - $ref: '#/components/replies/ok'
                   - type: object
                     properties:
-                      data:
-                        type: object
-                        example: null
                       message:
                         type: text
                         example: Forgot password token was verified 🍒
@@ -345,20 +326,57 @@ paths:
                   - $ref: '#/components/replies/error'
                   - type: object
                     properties:
-                      statusCode:
-                        type: number
-                        example: 400
                       error:
                         type: text
                         example: Invalid forgot password token"
 
-  /api/v1/profile/phone:
+  /api/v1/profiles/me:
+    patch:
+      tags:
+        - Profile
+      security:
+        - bearerToken: []
+      summary: update user data
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/forms/update_profile'
+
+      responses:
+        '200':
+          description: update profile data
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      message:
+                        type: string
+                        example: You profile data has been updated 🏡
+        '400':
+          description: this username is already taken by someone
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - type: object
+                    properties:
+                      error:
+                        type: string
+                        example: Username is already taken. Create another one 🥝
+
+  /api/v1/profiles/phone:
     put:
       tags:
         - Profile
       security:
         - bearerToken: []
-      summary: update user password
+      summary: update user phone
       requestBody:
         required: true
         content:
@@ -370,7 +388,33 @@ paths:
                   type: string
                   example: +38 (097) 777-8899
 
-  /api/v1/profile/phone/confirm:
+      responses:
+        '200':
+          description: update phone number
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      message:
+                        type: string
+                        example: You have been sent sms with a verification code
+        '400':
+          description: this username is already taken by someone
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - type: object
+                    properties:
+                      error:
+                        type: string
+                        example: You cant update your phone number while you have a previous phone verification
+
+  /api/v1/profiles/phone/confirm:
     post:
       tags:
         - Profile
@@ -414,7 +458,7 @@ paths:
                         type: string
                         example: Passwords do not match
 
-  /api/v1/profile/password:
+  /api/v1/profiles/password:
     put:
       tags:
         - Profile
@@ -438,9 +482,6 @@ paths:
                   - $ref: '#/components/replies/ok'
                   - type: object
                     properties:
-                      data:
-                        type: object
-                        example: null
                       message:
                         type: text
                         example: Your password has been updated 🔒
@@ -529,9 +570,6 @@ paths:
                   - $ref: '#/components/replies/error'
                   - type: object
                     properties:
-                      statusCode:
-                        type: number
-                        example: 400
                       error:
                         type: string
                         example: Token doesn't exists
@@ -568,14 +606,45 @@ paths:
                     - $ref: '#/components/replies/error'
                     - type: object
                       properties:
-                        statusCode:
-                          type: number
-                          example: 400
                         error:
                           type: string
                           example: No bearer token
 
-  /verification/email/new:
+  /api/v1/users/me:
+    delete:
+      tags:
+        - Users
+      security:
+        - bearerToken: []
+      summary: delete my account
+
+      responses:
+        '200':
+          description: update current password
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      message:
+                        type: text
+                        example: Your account has been successfully deleted 🤗
+        '403':
+          description: update current password
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - type: object
+                    properties:
+                      error:
+                        type: text
+                        example: You have already removed youself 🤗
+
+  /verifications/email/new:
     post:
       tags:
         - Verification
@@ -591,9 +660,6 @@ paths:
                 allOf:
                   - $ref: '#/components/replies/ok'
                   - properties:
-                      data:
-                        type: object
-                        example: null
                       message:
                         type: string
                         example: A new verify link has been created and send on your email! ✅
@@ -637,7 +703,7 @@ paths:
                         type: string
                         example: Your email is already verified
 
-  /verification/email/{token}:
+  /verifications/email/{token}:
     get:
       tags:
         - Verification
@@ -658,9 +724,6 @@ paths:
                 allOf:
                   - $ref: '#/components/replies/ok'
                   - properties:
-                      data:
-                        type: object
-                        example: null
                       message:
                         type: object
                         example: 'Your email address has been verified! 👍'
@@ -694,16 +757,16 @@ components:
           type: string
           example: Josh.Haley@hotmail.com
         username:
-          type: [string, null]
+          type: [string, 'null']
           example: Finn14
         photo:
-          type: [string, null]
+          type: [string, 'null']
           example: https://i.pinimg.com/736x/e6/82/92/e68292aca045835f376220eeee421c1d.jpg
         firstname:
-          type: [string, null]
+          type: [string, 'null']
           example: Merritt
         lastname:
-          type: [string, null]
+          type: [string, 'null']
           example: Bailey
         role:
           type: string
@@ -814,6 +877,19 @@ components:
           type: string
           example: 12345678new
 
+    update_profile:
+      type: object
+      properties:
+        about:
+          type: [string, 'null']
+          example: +38 (097) 777-8899
+        birthday:
+          type: [string, 'null']
+          example: null
+        username:
+          type: [string, 'null']
+          example: carlsagan
+
   replies:
     ok:
       type: object
@@ -824,6 +900,9 @@ components:
         statusCode:
           type: number
           example: 200
+        data:
+          type: [object, 'null']
+          example: null
         message:
           type: string
           example: 'Some text...'

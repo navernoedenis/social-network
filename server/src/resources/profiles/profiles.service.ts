@@ -2,7 +2,7 @@ import { eq } from 'drizzle-orm';
 import { db } from '@/db';
 import { profiles } from '@/db/files/entities';
 import { type Profile } from '@/db/files/models';
-import { type SwitchKey } from './profiles.types';
+import { type SwitchKey, type UpdateFields } from './profiles.types';
 
 class ProfilesService {
   async getProfile(userId: number) {
@@ -23,30 +23,38 @@ class ProfilesService {
       .where(eq(profiles.userId, userId));
   }
 
+  async updateFields(userId: number, fields: UpdateFields) {
+    return db
+      .update(profiles)
+      .set(fields)
+      .where(eq(profiles.userId, userId))
+      .returning();
+  }
+
   async switchIsActive(userId: number, value: boolean) {
-    return this.switchField('active', userId, value);
+    return this.switchField('isActive', userId, value);
   }
 
   async switchIsEmailVerified(userId: number, value: boolean) {
-    return this.switchField('email', userId, value);
+    return this.switchField('isEmailVerified', userId, value);
   }
 
   async switchIsOfficial(userId: number, value: boolean) {
-    return this.switchField('official', userId, value);
+    return this.switchField('isOfficial', userId, value);
   }
 
   async switchIsPhoneVerified(userId: number, value: boolean) {
-    return this.switchField('phone', userId, value);
+    return this.switchField('isPhoneVerified', userId, value);
   }
 
   private async switchField(key: SwitchKey, userId: number, value: boolean) {
     const [updatedProfile] = await db
       .update(profiles)
       .set({
-        ...(key === 'active' && { isActive: value }),
-        ...(key === 'email' && { isEmailVerified: value }),
-        ...(key === 'official' && { isOfficial: value }),
-        ...(key === 'phone' && { isPhoneVerified: value }),
+        ...(key === 'isActive' && { isActive: value }),
+        ...(key === 'isEmailVerified' && { isEmailVerified: value }),
+        ...(key === 'isOfficial' && { isOfficial: value }),
+        ...(key === 'isPhoneVerified' && { isPhoneVerified: value }),
       })
       .where(eq(profiles.userId, userId))
       .returning();

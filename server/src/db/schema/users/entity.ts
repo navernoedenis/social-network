@@ -22,7 +22,7 @@ export const users = pgTable(
   {
     id: serial('id').primaryKey(),
     email: varchar('email', { length: 50 }).notNull().unique(),
-    username: varchar('username', { length: 50 }),
+    username: varchar('username', { length: 30 }).unique(),
     photo: text('photo'),
     firstname: varchar('firstname', { length: 50 }),
     lastname: varchar('lastname', { length: 50 }),

@@ -46,7 +46,7 @@ export const signup = async (
   const { email, password } = req.body as SignUpDto;
 
   try {
-    const user = await usersService.findOne(email);
+    const user = await usersService.findByEmail(email);
     if (user) {
       throw new Conflict('Email is already taken');
     }
@@ -95,7 +95,7 @@ export const login = async (
   const loginDto = req.body as LoginDto;
 
   try {
-    const user = await usersService.findOne(loginDto.email, {
+    const user = await usersService.findByEmail(loginDto.email, {
       withProfile: true,
     });
     if (!user) {
@@ -239,7 +239,7 @@ export const forgotPassword = async (
   const forgotPasswordDto = req.body as ForgotPasswordDto;
 
   try {
-    const user = await usersService.findOne(forgotPasswordDto.email);
+    const user = await usersService.findByEmail(forgotPasswordDto.email);
     if (!user) {
       throw new Unauthorized('No user with this email');
     }

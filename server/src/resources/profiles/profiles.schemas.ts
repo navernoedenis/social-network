@@ -1,23 +1,29 @@
 import z from 'zod';
+import { phoneRegex } from '@/utils/constants';
 
-const phoneRegex = new RegExp(/^(\+\d{1,2}\s)\(\d{3}\)[\s-]\d{3}[\s-]\d{4}$/);
 const OTP_PASSWORD_LENGTH = 6;
+const trimedString = z.string().trim().toLowerCase();
 
-const password = z
-  .string()
+const password = trimedString
   .min(8)
   .max(25)
-  .regex(/[a-zAz]/, { message: 'At least one letter' });
+  .regex(/[a-zAz]/, 'At least one letter');
 
-// schema example: "+38 (097) 777-8899"
+export const updateDataSchema = z.object({
+  about: trimedString.max(200, 'About field must be not more than 200 letters'),
+  birthday: z.date().nullable(),
+  username: trimedString
+    .max(30, 'Maximum length of a username is 30 letters')
+    .nullable(),
+});
+
 export const updatePhoneSchema = z.object({
+  // example: "+38 (097) 777-8899"
   phone: z.string().regex(phoneRegex, 'Invalid phone number').nullable(),
 });
 
 export const confirmPhoneSchema = z
-  .object({
-    otp: z.number(),
-  })
+  .object({ otp: z.number() })
   .refine((schema) => `${schema.otp}`.length === OTP_PASSWORD_LENGTH, {
     message: `Otp password must contain only ${OTP_PASSWORD_LENGTH} digits`,
   });

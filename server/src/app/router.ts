@@ -11,6 +11,7 @@ import { isAuthorized } from '@/utils/middlewares';
 
 import { profilesRouter } from '@/resources/profiles';
 import { sessionTokensRouter } from '@/resources/session-tokens';
+import { usersRouter } from '@/resources/users';
 import { verificationsRouter } from '@/resources/verifications';
 
 export const router = Router();
@@ -24,11 +25,12 @@ if (ENV.IS_DEVELOPMENT) {
 }
 
 router.use('/auth', authRouter);
-router.use('/verification', verificationsRouter);
+router.use('/verifications', verificationsRouter);
 
 router.use('/api', isAuthorized);
-router.use('/api/v1/profile', profilesRouter);
+router.use('/api/v1/profiles', profilesRouter);
 router.use('/api/v1/session-tokens', sessionTokensRouter);
+router.use('/api/v1/users', usersRouter);
 
 router.get('/test', AppHandlers.testHandler);
 router.use('*', AppHandlers.notFoundtHandler);

@@ -10,10 +10,12 @@ export const validateBody = (schema: ZodSchema) => {
         throw new BadRequest("Body can't be empty");
       }
 
-      const { error } = await schema.safeParseAsync(req.body);
-      if (error) {
-        throw new BadRequest(error.errors[0].message);
+      const result = await schema.safeParseAsync(req.body);
+      if (result.error) {
+        throw new BadRequest(result.error.errors[0].message);
       }
+
+      req.body = result.data;
 
       next();
     } catch (error) {

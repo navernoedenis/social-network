@@ -18,7 +18,7 @@ export const verifications = pgTable(
     id: uuid('id').defaultRandom().primaryKey(),
     userId: integer('user_id')
       .notNull()
-      .references(() => users.id),
+      .references(() => users.id, { onDelete: 'cascade' }),
     type: text('type', { enum: types }).notNull(),
     payload: varchar('payload', { length: 255 }).notNull(),
     expiredAt: timestamp('expired_at', { mode: 'date' }).notNull(),
