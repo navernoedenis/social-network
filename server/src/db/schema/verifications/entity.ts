@@ -24,6 +24,6 @@ export const verifications = pgTable(
     expiredAt: timestamp('expired_at', { mode: 'date' }).notNull(),
   },
   (table) => ({
-    userIdx: index('verifications_user_id').on(table.userId),
+    userIdx: index('verifications_user_idx').on(table.userId),
   })
 );

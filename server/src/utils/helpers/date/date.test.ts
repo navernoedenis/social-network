@@ -1,5 +1,5 @@
 import { getExpiredAt } from '.';
-import { MILLISECONDS_IN } from './date.constants';
+import { MILLISECONDS_IN } from '@/utils/constants';
 
 describe('test date helpers', () => {
   describe('get-expired-at', () => {

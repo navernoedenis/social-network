@@ -12,7 +12,7 @@ import { logger } from '@/utils/lib';
 
 export const middlewares: RequestHandler[] = [
   bodyParser.json(),
-  bodyParser.urlencoded({ extended: false }),
+  bodyParser.urlencoded({ extended: true }),
   cookieParser(),
   getCors(),
   helmet(),

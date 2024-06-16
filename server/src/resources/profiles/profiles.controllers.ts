@@ -39,8 +39,8 @@ export const updateData = async (
       profilesService.updateFields(user.id, otherUpdateData),
     ];
 
-    const isEmptyString = username?.trim().length === 0;
-    if (!isEmptyString) {
+    const isUsernameEmpty = username?.trim().length === 0;
+    if (!isUsernameEmpty) {
       const promise = usersService.updateFields(user.id, {
         username,
       });
@@ -49,10 +49,12 @@ export const updateData = async (
 
     await Promise.all(promises);
 
+    const updatedProfile = await profilesService.getProfile(user.id);
+
     res.status(httpStatus.OK).json({
       success: true,
       statusCode: httpStatus.OK,
-      data: null,
+      data: updatedProfile,
       message: 'You profile data has been updated 🏡',
     } as HttpResponse);
   } catch (error) {

@@ -9,6 +9,8 @@ import { authRouter } from '@/resources/auth';
 import { ENV } from '@/app/env';
 import { isAuthorized } from '@/utils/middlewares';
 
+import { filesRouter } from '@/resources/files';
+import { postsRouter } from '@/resources/posts';
 import { profilesRouter } from '@/resources/profiles';
 import { sessionTokensRouter } from '@/resources/session-tokens';
 import { usersRouter } from '@/resources/users';
@@ -28,6 +30,8 @@ router.use('/auth', authRouter);
 router.use('/verifications', verificationsRouter);
 
 router.use('/api', isAuthorized);
+router.use('/api/v1/files', filesRouter);
+router.use('/api/v1/posts', postsRouter);
 router.use('/api/v1/profiles', profilesRouter);
 router.use('/api/v1/session-tokens', sessionTokensRouter);
 router.use('/api/v1/users', usersRouter);

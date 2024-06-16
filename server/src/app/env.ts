@@ -1,4 +1,4 @@
-import { z, type ZodIssue } from 'zod';
+import z, { type ZodIssue } from 'zod';
 import { print } from '@/utils/lib/print';
 import { type ENV_MODE } from '@/types/main';
 
@@ -20,6 +20,11 @@ const ENV_SCHEMA = z.object({
 
   ENCRYPT_SECRET_KEY: z.string().trim().length(32),
   ENCRYPT_IV_KEY: z.string().trim().length(16),
+
+  AWS_S3_REGION: z.string().trim().min(1),
+  AWS_S3_BUCKET_NAME: z.string().trim().min(1),
+  AWS_S3_ACCESS_KEY_ID: z.string().trim().min(1),
+  AWS_S3_SECRET_ACCESS_KEY: z.string().trim().min(1),
 });
 
 const printErrors = (errors: ZodIssue[]) => {

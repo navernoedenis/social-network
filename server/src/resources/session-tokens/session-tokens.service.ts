@@ -30,13 +30,13 @@ class SessionsTokensService {
   }
 
   async revokeOne(id: string, userId: number) {
-    const myAndTokensIds = and(
+    const tokenIds = and(
       eq(sessionTokens.id, id),
       eq(sessionTokens.userId, userId)
     );
 
     const token = await db.query.sessionTokens.findFirst({
-      where: myAndTokensIds,
+      where: tokenIds,
     });
 
     if (!token) {
@@ -45,19 +45,19 @@ class SessionsTokensService {
 
     const [revokedToken] = await db
       .delete(sessionTokens)
-      .where(myAndTokensIds)
+      .where(tokenIds)
       .returning();
 
     return revokedToken;
   }
 
   async revokeMany(userId: number, token: string) {
-    const exceptCurrent = and(
+    const notCurrent = and(
       eq(sessionTokens.userId, userId),
       ne(sessionTokens.token, token)
     );
 
-    await db.delete(sessionTokens).where(exceptCurrent);
+    await db.delete(sessionTokens).where(notCurrent);
     return this.findOne(token);
   }
 

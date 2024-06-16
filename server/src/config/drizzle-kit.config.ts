@@ -12,6 +12,7 @@ const drizzleKitConfig = defineConfig({
     user: ENV.DB_USER,
     password: ENV.DB_PASSWORD,
     database: ENV.DB_NAME,
+    ssl: ENV.IS_PRODUCTION,
   },
 });
 

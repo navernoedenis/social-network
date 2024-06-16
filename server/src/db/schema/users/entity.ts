@@ -10,6 +10,7 @@ import {
 
 import {
   passwords,
+  posts,
   profiles,
   sessionTokens,
   settings,
@@ -39,6 +40,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     fields: [users.id],
     references: [passwords.userId],
   }),
+  posts: many(posts),
   profile: one(profiles, {
     fields: [users.id],
     references: [profiles.userId],

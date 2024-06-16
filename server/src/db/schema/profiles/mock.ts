@@ -7,5 +7,5 @@ export const createProfile = (userId: number): NewProfile => ({
   isOfficial: faker.helpers.arrayElement([true, false]),
   isEmailVerified: false,
   isPhoneVerified: false,
-  about: faker.helpers.arrayElement([faker.person.bio(), null]),
+  about: faker.helpers.arrayElement([faker.person.bio()]),
 });

@@ -8,6 +8,8 @@ info:
 tags:
   - name: Auth
     description: access to social network
+  - name: Files
+    description: upload and delete files
   - name: Session tokens
     description: manage your's session tokens
   - name: Profile
@@ -205,6 +207,9 @@ paths:
                   - $ref: '#/components/replies/ok'
                   - type: object
                     properties:
+                      data:
+                        type: object
+                        example: null
                       message:
                         type: text
                         example: Forgot password verification was created ✨.
@@ -275,6 +280,9 @@ paths:
                   - $ref: '#/components/replies/ok'
                   - type: object
                     properties:
+                      data:
+                        type: object
+                        example: null
                       message:
                         type: text
                         example: Your password has been updated🤘
@@ -284,10 +292,10 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: '#/components/replies/ok'
+                  - $ref: '#/components/replies/error'
                   - type: object
                     properties:
-                      message:
+                      error:
                         type: text
                         example: No forgot password token
 
@@ -313,6 +321,9 @@ paths:
                   - $ref: '#/components/replies/ok'
                   - type: object
                     properties:
+                      data:
+                        type: object
+                        example: null
                       message:
                         type: text
                         example: Forgot password token was verified 🍒
@@ -329,6 +340,98 @@ paths:
                       error:
                         type: text
                         example: Invalid forgot password token"
+
+  /api/v1/files:
+    post:
+      tags:
+        - Files
+      security:
+        - bearerToken: []
+      summary: upload file or files
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/forms/upload_file'
+
+      responses:
+        '200':
+          description: files have been uploaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/file'
+                      message:
+                        type: text
+                        example: Files has been uploaded 🐪
+        '400':
+          description: cannot upload the file
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - type: object
+                    properties:
+                      error:
+                        type: string
+                        example: Every file must contain the same mimetime
+
+    delete:
+      tags:
+        - Files
+      security:
+        - bearerToken: []
+      summary: remove files
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fileIds:
+                  type: array
+                  items:
+                    type: string
+                    example: f9cff196-a251-46ea-8c6b-bc13064b9970
+
+      responses:
+        '200':
+          description: files have been uploaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        example: null
+                      message:
+                        type: text
+                        example: Files has been uploaded 🐪
+        '400':
+          description: cant uploada file
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - type: object
+                    properties:
+                      error:
+                        type: string
+                        example: Invalid ids or no files to remove 🫷
 
   /api/v1/profiles/me:
     patch:
@@ -354,9 +457,12 @@ paths:
                   - $ref: '#/components/replies/ok'
                   - type: object
                     properties:
+                      data:
+                        $ref: '#/components/schemas/user_and_profile'
                       message:
                         type: string
                         example: You profile data has been updated 🏡
+
         '400':
           description: this username is already taken by someone
           content:
@@ -398,6 +504,9 @@ paths:
                   - $ref: '#/components/replies/ok'
                   - type: object
                     properties:
+                      data:
+                        type: object
+                        example: null
                       message:
                         type: string
                         example: You have been sent sms with a verification code
@@ -442,6 +551,9 @@ paths:
                   - $ref: '#/components/replies/ok'
                   - type: object
                     properties:
+                      data:
+                        type: object
+                        example: null
                       error:
                         type: string
                         example: You phone number has been confirmed ✅
@@ -482,6 +594,9 @@ paths:
                   - $ref: '#/components/replies/ok'
                   - type: object
                     properties:
+                      data:
+                        type: object
+                        example: null
                       message:
                         type: text
                         example: Your password has been updated 🔒
@@ -519,7 +634,6 @@ paths:
                         type: array
                         items:
                           $ref: '#/components/schemas/sessionToken'
-
                       message:
                         type: text
                         example: You've received your refresh tokens
@@ -557,6 +671,9 @@ paths:
                   - $ref: '#/components/replies/ok'
                   - type: object
                     properties:
+                      data:
+                        type: object
+                        example: null
                       message:
                         type: text
                         example: You token has been revoked!
@@ -628,6 +745,9 @@ paths:
                   - $ref: '#/components/replies/ok'
                   - type: object
                     properties:
+                      data:
+                        type: object
+                        example: null
                       message:
                         type: text
                         example: Your account has been successfully deleted 🤗
@@ -660,6 +780,9 @@ paths:
                 allOf:
                   - $ref: '#/components/replies/ok'
                   - properties:
+                      data:
+                        type: object
+                        example: null
                       message:
                         type: string
                         example: A new verify link has been created and send on your email! ✅
@@ -724,9 +847,12 @@ paths:
                 allOf:
                   - $ref: '#/components/replies/ok'
                   - properties:
+                      data:
+                        type: object
+                        example: null
                       message:
                         type: object
-                        example: 'Your email address has been verified! 👍'
+                        example: Your email address has been verified! 👍
         '400':
           description: Invalid token
           content:
@@ -737,7 +863,7 @@ paths:
                   - properties:
                       error:
                         type: object
-                        example: 'Invalid token'
+                        example: Invalid token
 
 components:
   securitySchemes:
@@ -747,30 +873,28 @@ components:
       bearerFormat: JWT
 
   schemas:
-    user:
+    file:
       type: object
       properties:
         id:
+          type: string
+          example: eb38fb08-003f-4ebc-844d-704708eb694b
+        authorId:
           type: number
           example: 1
-        email:
+        bucketKey:
           type: string
-          example: Josh.Haley@hotmail.com
-        username:
-          type: [string, 'null']
-          example: Finn14
-        photo:
-          type: [string, 'null']
-          example: https://i.pinimg.com/736x/e6/82/92/e68292aca045835f376220eeee421c1d.jpg
-        firstname:
-          type: [string, 'null']
-          example: Merritt
-        lastname:
-          type: [string, 'null']
-          example: Bailey
-        role:
+          example: audios/2ebb5b4fb9819436d8d13b63f3c0322e7a36b9b38711c4ef84149123ef2343d5.mp3
+        name:
           type: string
-          example: Admin
+          example: Erika - I don't know
+        url:
+          type: string
+          example: https://social-network-files.s3.us-east-1.amazonaws.com/audios/2ebb5b4fb9819436d8d13b63f3c0322e7a36b9b38711c4ef84149123ef2343d5.mp3
+        type:
+          type: string
+          example: audio
+          enum: [audio, image, video]
 
     profile:
       type: object
@@ -803,13 +927,6 @@ components:
           type: date
           example: 2024-06-05T15:02:57.345Z
 
-    user_and_profile:
-      allOf:
-        - $ref: '#/components/schemas/user'
-        - properties:
-            profile:
-              $ref: '#/components/schemas/profile'
-
     sessionToken:
       type: object
       properties:
@@ -832,10 +949,42 @@ components:
           example: linux
         ip:
           type: string
-          example: ' 172.19.0.1'
+          example: '172.19.0.1'
         expiredAt:
           type: date
           example: '2024-07-11T12:55:40.509Z'
+
+    user:
+      type: object
+      properties:
+        id:
+          type: number
+          example: 1
+        email:
+          type: string
+          example: Josh.Haley@hotmail.com
+        username:
+          type: [string, 'null']
+          example: Finn14
+        photo:
+          type: [string, 'null']
+          example: https://i.pinimg.com/736x/e6/82/92/e68292aca045835f376220eeee421c1d.jpg
+        firstname:
+          type: [string, 'null']
+          example: Merritt
+        lastname:
+          type: [string, 'null']
+          example: Bailey
+        role:
+          type: string
+          example: Admin
+
+    user_and_profile:
+      allOf:
+        - $ref: '#/components/schemas/user'
+        - properties:
+            profile:
+              $ref: '#/components/schemas/profile'
 
   forms:
     login:
@@ -890,6 +1039,21 @@ components:
           type: [string, 'null']
           example: carlsagan
 
+    upload_file:
+      type: object
+      properties:
+        type:
+          description: type of files
+          type: type
+          example: audio
+          enum: [audio, image, video]
+          required: true
+        files:
+          description: array of files
+          type: array
+          items: file
+          required: true
+
   replies:
     ok:
       type: object
@@ -900,12 +1064,6 @@ components:
         statusCode:
           type: number
           example: 200
-        data:
-          type: [object, 'null']
-          example: null
-        message:
-          type: string
-          example: 'Some text...'
 
     error:
       type: object

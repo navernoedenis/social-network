@@ -8,5 +8,6 @@ export * from './security/tokens';
 export * from './errors/error-message';
 export * from './errors/http-error';
 
-export * from './date';
+export * from './convert';
 export * from './create-link';
+export * from './date';

@@ -1,5 +1,5 @@
+import z from 'zod';
 import { getErrorMessage } from './error-message';
-import { z } from 'zod';
 
 describe('test func get-error-message', () => {
   test('string error: return message', () => {
