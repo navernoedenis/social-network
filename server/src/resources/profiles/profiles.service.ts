@@ -1,13 +1,14 @@
 import { eq } from 'drizzle-orm';
 import { db } from '@/db';
-import { profiles } from '@/db/files/entities';
 import { type Profile } from '@/db/files/models';
-import { type SwitchKey, type UpdateFields } from './profiles.types';
+import { type ToggleKey, type UpdateFields } from './profiles.types';
+
+import * as entities from '@/db/files/entities';
 
 class ProfilesService {
   async getProfile(userId: number) {
     const profile = await db.query.profiles.findFirst({
-      where: eq(profiles.userId, userId),
+      where: eq(entities.profiles.userId, userId),
     });
 
     return profile as Profile;
@@ -15,48 +16,48 @@ class ProfilesService {
 
   async updatePhone(userId: number, phone: string | null) {
     return db
-      .update(profiles)
+      .update(entities.profiles)
       .set({
         phone,
         isPhoneVerified: false,
       })
-      .where(eq(profiles.userId, userId));
+      .where(eq(entities.profiles.userId, userId));
   }
 
   async updateFields(userId: number, fields: UpdateFields) {
     return db
-      .update(profiles)
+      .update(entities.profiles)
       .set(fields)
-      .where(eq(profiles.userId, userId))
+      .where(eq(entities.profiles.userId, userId))
       .returning();
   }
 
-  async switchIsActive(userId: number, value: boolean) {
-    return this.switchField('isActive', userId, value);
+  async toggleIsActive(userId: number, value: boolean) {
+    return this.toggleField('isActive', userId, value);
   }
 
-  async switchIsEmailVerified(userId: number, value: boolean) {
-    return this.switchField('isEmailVerified', userId, value);
+  async toggleIsEmailVerified(userId: number, value: boolean) {
+    return this.toggleField('isEmailVerified', userId, value);
   }
 
-  async switchIsOfficial(userId: number, value: boolean) {
-    return this.switchField('isOfficial', userId, value);
+  async toggleIsOfficial(userId: number, value: boolean) {
+    return this.toggleField('isOfficial', userId, value);
   }
 
-  async switchIsPhoneVerified(userId: number, value: boolean) {
-    return this.switchField('isPhoneVerified', userId, value);
+  async toggleIsPhoneVerified(userId: number, value: boolean) {
+    return this.toggleField('isPhoneVerified', userId, value);
   }
 
-  private async switchField(key: SwitchKey, userId: number, value: boolean) {
+  private async toggleField(key: ToggleKey, userId: number, value: boolean) {
     const [updatedProfile] = await db
-      .update(profiles)
+      .update(entities.profiles)
       .set({
         ...(key === 'isActive' && { isActive: value }),
         ...(key === 'isEmailVerified' && { isEmailVerified: value }),
         ...(key === 'isOfficial' && { isOfficial: value }),
         ...(key === 'isPhoneVerified' && { isPhoneVerified: value }),
       })
-      .where(eq(profiles.userId, userId))
+      .where(eq(entities.profiles.userId, userId))
       .returning();
 
     return updatedProfile;

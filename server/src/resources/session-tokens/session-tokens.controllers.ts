@@ -9,7 +9,7 @@ import { BadRequest, parseCookieToken } from '@/utils/helpers';
 import { httpStatus } from '@/utils/constants';
 import { sessionsTokensService } from './session-tokens.service';
 
-export const getMySessionTokens = async (
+export const getSessionTokens = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -17,7 +17,7 @@ export const getMySessionTokens = async (
   const user = req.user!;
 
   try {
-    const tokens = await sessionsTokensService.findMany(user.id);
+    const tokens = await sessionsTokensService.getTokens(user.id);
 
     res.status(httpStatus.OK).json({
       success: true,
@@ -39,7 +39,7 @@ export const revokeSessionToken = async (
   const user = req.user!;
 
   try {
-    const revokedToken = await sessionsTokensService.revokeOne(
+    const revokedToken = await sessionsTokensService.revokeToken(
       tokenId,
       user.id
     );
@@ -68,15 +68,14 @@ export const revokeSessionTokens = async (
   const user = req.user!;
 
   try {
-    const currentToken = await sessionsTokensService.revokeMany(
-      user.id,
-      refreshToken
-    );
+    await sessionsTokensService.revokeTokens(user.id, {
+      exceptCurrentToken: refreshToken,
+    });
 
     res.status(httpStatus.OK).json({
       success: true,
       statusCode: httpStatus.OK,
-      data: currentToken,
+      data: null,
       message: 'You tokens has been revoked!',
     } as HttpResponse);
   } catch (error) {

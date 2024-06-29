@@ -27,7 +27,7 @@ export const checkCookieToken = async (
     }
 
     if (isExpired) {
-      await sessionsTokensService.deleteOne(refreshToken);
+      await sessionsTokensService.deleteToken(refreshToken);
 
       return res
         .status(httpStatus.UNAUTHORIZED)
@@ -61,7 +61,7 @@ export const verifyCookieToken = async (
       throw new Error('Invalid refresh token');
     }
 
-    const sessionTokens = await sessionsTokensService.findMany(user.id);
+    const sessionTokens = await sessionsTokensService.getTokens(user.id);
     const isSessionTokenExists = sessionTokens.find(
       (sessionToken) => sessionToken.token === refreshToken
     );

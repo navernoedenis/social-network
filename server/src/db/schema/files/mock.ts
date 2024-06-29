@@ -3,10 +3,7 @@ import { mediaTypes } from '@/utils/constants';
 import { type MediaType } from '@/types/main';
 import { type NewFile } from './model';
 
-export const createFile = (
-  authorId: number,
-  mediaType?: MediaType
-): NewFile => {
+export const createFile = (userId: number, mediaType?: MediaType): NewFile => {
   const type = mediaType ?? faker.helpers.arrayElement(mediaTypes);
   let url = '';
 
@@ -32,7 +29,7 @@ export const createFile = (
   const isbn = faker.commerce.isbn();
 
   return {
-    authorId,
+    userId,
     bucketKey: `bucket/${isbn}`,
     name: isbn,
     type,

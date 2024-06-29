@@ -1,3 +1,4 @@
+import { relations } from 'drizzle-orm';
 import {
   index,
   integer,
@@ -14,8 +15,8 @@ export const sessionTokens = pgTable(
   {
     id: uuid('id').defaultRandom().primaryKey(),
     userId: integer('user_id')
-      .notNull()
-      .references(() => users.id, { onDelete: 'cascade' }),
+      .references(() => users.id, { onDelete: 'cascade' })
+      .notNull(),
     token: varchar('token', { length: 255 }).notNull(),
     browser: varchar('browser', { length: 50 }).notNull(),
     os: varchar('os', { length: 20 }).notNull(),
@@ -23,7 +24,14 @@ export const sessionTokens = pgTable(
     expiredAt: timestamp('expired_at', { mode: 'date' }).notNull(),
   },
   (table) => ({
-    userIdx: index('session_tokens_user_idx').on(table.userId),
+    userIdx: index('session_tokens_user_id_idx').on(table.userId),
     tokenIdx: index('session_tokens_token_idx').on(table.token),
   })
 );
+
+export const sessionTokensRelations = relations(sessionTokens, ({ one }) => ({
+  user: one(users, {
+    fields: [sessionTokens.userId],
+    references: [users.id],
+  }),
+}));

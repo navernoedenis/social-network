@@ -1,26 +1,26 @@
 import { and, eq, inArray } from 'drizzle-orm';
 import { db } from '@/db';
 import { NewFile } from '@/db/files/mocks';
-import { files } from '@/db/files/entities';
+
+import * as entities from '@/db/files/entities';
 
 class FileService {
-  async createFiles(newFiles: NewFile | NewFile[]) {
-    return db
-      .insert(files)
-      .values(newFiles as NewFile[])
-      .returning();
+  async createFiles(newFiles: NewFile[]) {
+    return db.insert(entities.files).values(newFiles).returning();
   }
 
-  async getFiles(userId: number, fileIds: string[]) {
-    const myFiles = and(eq(files.authorId, userId), inArray(files.id, fileIds));
+  async getFiles(fileIds: number[]) {
     return db.query.files.findMany({
-      where: myFiles,
+      where: inArray(entities.files.id, fileIds),
     });
   }
 
-  async deleteFiles(userId: number, fileIds: string[]) {
-    const myFiles = and(eq(files.authorId, userId), inArray(files.id, fileIds));
-    return db.delete(files).where(myFiles).returning();
+  async deleteFiles(userId: number, fileIds: number[]) {
+    const myFiles = and(
+      eq(entities.files.userId, userId),
+      inArray(entities.files.id, fileIds)
+    );
+    return db.delete(entities.files).where(myFiles).returning();
   }
 }
 

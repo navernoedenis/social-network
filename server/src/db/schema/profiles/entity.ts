@@ -1,3 +1,4 @@
+import { relations } from 'drizzle-orm';
 import { users } from '@/db/files/entities';
 import {
   boolean,
@@ -15,8 +16,8 @@ export const profiles = pgTable(
   {
     id: uuid('id').defaultRandom().primaryKey(),
     userId: integer('user_id')
-      .notNull()
-      .references(() => users.id, { onDelete: 'cascade' }),
+      .references(() => users.id, { onDelete: 'cascade' })
+      .notNull(),
 
     about: varchar('about', { length: 200 }).notNull().default(''),
     birthday: date('birthday', { mode: 'date' }),
@@ -33,6 +34,13 @@ export const profiles = pgTable(
       .$onUpdate(() => new Date()),
   },
   (table) => ({
-    userIdx: index('profiles_user_idx').on(table.userId),
+    userIdx: index('profiles_user_id_idx').on(table.userId),
   })
 );
+
+export const profilesRelations = relations(profiles, ({ one }) => ({
+  user: one(users, {
+    fields: [profiles.userId],
+    references: [users.id],
+  }),
+}));

@@ -48,7 +48,6 @@ export const updateData = async (
     }
 
     await Promise.all(promises);
-
     const updatedProfile = await profilesService.getProfile(user.id);
 
     res.status(httpStatus.OK).json({
@@ -67,7 +66,7 @@ export const updatePhone = async (
   res: Response,
   next: NextFunction
 ) => {
-  const updatePhoneDto = req.body as UpdatePhoneDto;
+  const dto = req.body as UpdatePhoneDto;
   const user = req.user!;
 
   try {
@@ -84,11 +83,11 @@ export const updatePhone = async (
     }
 
     const profile = await profilesService.getProfile(user.id);
-    if (profile.phone === updatePhoneDto.phone) {
+    if (profile.phone === dto.phone) {
       throw new BadRequest('You already have this phone number');
     }
 
-    const shouldResetPhone = !!updatePhoneDto.phone === false;
+    const shouldResetPhone = !!dto.phone === false;
     if (shouldResetPhone) {
       await profilesService.updatePhone(user.id, null);
       return res.status(httpStatus.OK).json({
@@ -102,7 +101,7 @@ export const updatePhone = async (
     const otp = createOtpPassword();
 
     await Promise.all([
-      profilesService.updatePhone(user.id, updatePhoneDto.phone),
+      profilesService.updatePhone(user.id, dto.phone),
       phoneService.sendSms({
         text: `Your phone verification code: ${otp} `,
       }),
@@ -128,7 +127,7 @@ export const confirmPhone = async (
   res: Response,
   next: NextFunction
 ) => {
-  const confirmPhoneDto = req.body as ConfirmPhoneDto;
+  const dto = req.body as ConfirmPhoneDto;
   const user = req.user!;
 
   try {
@@ -141,12 +140,12 @@ export const confirmPhone = async (
     }
 
     const otp = +verification.payload;
-    if (confirmPhoneDto.otp !== otp) {
+    if (dto.otp !== otp) {
       throw new BadRequest('Passwords do not match');
     }
 
     await Promise.all([
-      profilesService.switchIsPhoneVerified(user.id, true),
+      profilesService.toggleIsPhoneVerified(user.id, true),
       verificationsService.deletePhoneVerification(verification.id),
     ]);
 
@@ -166,21 +165,21 @@ export const updatePassword = async (
   res: Response,
   next: NextFunction
 ) => {
-  const updatePasswordDto = req.body as UpdatePasswordDto;
+  const dto = req.body as UpdatePasswordDto;
   const user = req.user!;
 
   try {
     const currentPassword = await passwordsService.getPassword(user.id);
 
     const isCurrentPasswordMatch = await verifyHash(
-      updatePasswordDto.currentPassword,
+      dto.currentPassword,
       currentPassword.hash
     );
     if (!isCurrentPasswordMatch) {
       throw new BadRequest('Your current password is wrong');
     }
 
-    const hash = await createHash(updatePasswordDto.password);
+    const hash = await createHash(dto.password);
     await passwordsService.updatePassword(user.id, hash);
 
     res.status(httpStatus.OK).json({

@@ -14,6 +14,7 @@ import {
   profiles,
   sessionTokens,
   settings,
+  files,
 } from '@/db/files/entities';
 
 const roles = ['user', 'admin', 'root'] as const;
@@ -40,7 +41,6 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     fields: [users.id],
     references: [passwords.userId],
   }),
-  posts: many(posts),
   profile: one(profiles, {
     fields: [users.id],
     references: [profiles.userId],
@@ -49,5 +49,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     fields: [users.id],
     references: [settings.userId],
   }),
+  posts: many(posts),
+  files: many(files),
   tokens: many(sessionTokens),
 }));

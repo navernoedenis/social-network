@@ -5,6 +5,7 @@ import {
   newEmailVerification,
   verifyEmailToken,
 } from './verifications.controllers';
+
 import {
   checkIsEmailVerificationExists,
   checkIsEmailVerified,
@@ -12,13 +13,15 @@ import {
 
 export const verificationsRouter = Router();
 
-const newEmailVerificationChecks = [
-  isAuthorized,
-  checkIsEmailVerified,
-  checkIsEmailVerificationExists,
-  validateBody(newEmailVerificationSchema),
-];
+const validators = {
+  newEmailVerification: [
+    isAuthorized,
+    checkIsEmailVerified,
+    checkIsEmailVerificationExists,
+    validateBody(newEmailVerificationSchema),
+  ],
+};
 
 verificationsRouter
-  .post('/email/new', newEmailVerificationChecks, newEmailVerification)
+  .post('/email/new', validators.newEmailVerification, newEmailVerification)
   .get('/email/:token', verifyEmailToken);

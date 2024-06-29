@@ -709,7 +709,8 @@ paths:
                   - type: object
                     properties:
                       data:
-                        $ref: '#/components/schemas/sessionToken'
+                        type: object
+                        example: null
                       message:
                         type: text
                         example: You tokens has been revoked!
@@ -879,7 +880,7 @@ components:
         id:
           type: string
           example: eb38fb08-003f-4ebc-844d-704708eb694b
-        authorId:
+        userId:
           type: number
           example: 1
         bucketKey:
@@ -936,11 +937,6 @@ components:
         userId:
           type: number
           example: 1
-        token:
-          type: string
-          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.
-            eyJpZCI6MSwiZW1haWwiOiJkZW5pc0BnbWFpbC5jb20iLCJyb2xlIjoidXNlciIsImlhdCI6MTcxODEwNTkwMSwiZXhwIjoxNzIwNjk3OTAxfQ.
-            pz9Jw-tL2c7tmxXKgshFaUOiPyCk9xhKq-9b5E6Mi4Q
         browser:
           type: string
           example: firefox

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { checkCookieToken } from '@/utils/middlewares';
 import {
-  getMySessionTokens,
+  getSessionTokens,
   revokeSessionToken,
   revokeSessionTokens,
 } from './session-tokens.controllers';
@@ -9,6 +9,6 @@ import {
 export const sessionTokensRouter = Router();
 
 sessionTokensRouter
-  .get('/', getMySessionTokens)
+  .get('/', getSessionTokens)
   .delete('/all', checkCookieToken, revokeSessionTokens)
   .delete('/:id', revokeSessionToken);

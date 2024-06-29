@@ -43,13 +43,17 @@ export const verifyEmailToken = async (
   const { token = '' } = req.params;
 
   try {
-    const { error, data: verification } =
-      await verificationsService.checkEmailByToken(token);
+    const error = await verificationsService.checkEmailByToken(token);
+    if (typeof error === 'string') {
+      throw new BadRequest(error);
+    }
 
-    if (!verification) throw new BadRequest(error);
+    const verification = error;
 
-    await profilesService.switchIsEmailVerified(verification.userId, true);
-    await verificationsService.deleteEmailVerification(verification.id);
+    await Promise.all([
+      profilesService.toggleIsEmailVerified(verification.userId, true),
+      verificationsService.deleteEmailVerification(verification.id),
+    ]);
 
     res.status(httpStatus.OK).json({
       success: true,

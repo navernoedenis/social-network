@@ -1,15 +1,15 @@
 import { and, eq } from 'drizzle-orm';
 import { db } from '@/db';
-import { verifications } from '@/db/files/entities';
-import { type Verification, type VerificationType } from '@/db/files/models';
 
-import { checkIsExpired, getErrorMessage, getExpiredAt } from '@/utils/helpers';
-
-import { type ExecutionResult } from '@/types/main';
+import { type VerificationType } from '@/db/files/models';
 import {
   type CreateVerificationConfig,
   type GetVerificationConfig,
 } from './verifications.types';
+
+import { checkIsExpired, getExpiredAt } from '@/utils/helpers';
+
+import * as entities from '@/db/files/entities';
 
 class VerificationsService {
   // 2FA
@@ -86,7 +86,7 @@ class VerificationsService {
   ) {
     const { userId, payload, expiredAt } = config;
 
-    return db.insert(verifications).values({
+    return db.insert(entities.verifications).values({
       type,
       userId,
       payload,
@@ -102,8 +102,8 @@ class VerificationsService {
 
     const verification = await db.query.verifications.findFirst({
       where: and(
-        eq(verifications.type, type),
-        eq(verifications.userId, userId)
+        eq(entities.verifications.type, type),
+        eq(entities.verifications.userId, userId)
       ),
     });
 
@@ -128,47 +128,39 @@ class VerificationsService {
     verificationId: string;
   }) {
     return db
-      .delete(verifications)
+      .delete(entities.verifications)
       .where(
         and(
-          eq(verifications.id, data.verificationId),
-          eq(verifications.type, data.type)
+          eq(entities.verifications.id, data.verificationId),
+          eq(entities.verifications.type, data.type)
         )
       );
   }
 
-  private async checkToken(data: {
-    type: VerificationType;
-    token: string;
-  }): ExecutionResult<Verification> {
-    try {
-      const verification = await db.query.verifications.findFirst({
-        where: and(
-          eq(verifications.type, data.type),
-          eq(verifications.payload, data.token)
-        ),
+  private async checkToken(data: { type: VerificationType; token: string }) {
+    const verification = await db.query.verifications.findFirst({
+      where: and(
+        eq(entities.verifications.type, data.type),
+        eq(entities.verifications.payload, data.token)
+      ),
+    });
+
+    if (!verification) return 'Invalid token';
+
+    if (checkIsExpired(verification.expiredAt)) {
+      await this.deleteVerification({
+        type: data.type,
+        verificationId: verification.id,
       });
 
-      if (!verification) throw new Error('Invalid token');
-      if (checkIsExpired(verification.expiredAt)) {
-        await this.deleteVerification({
-          type: data.type,
-          verificationId: verification.id,
-        });
+      const message =
+        'Verification token is expired. ' +
+        'Try to request another verification token';
 
-        const message =
-          'Verification token is expired. ' +
-          'Try to request another verification token';
-
-        throw new Error(message);
-      }
-
-      return { data: verification };
-    } catch (error) {
-      return {
-        error: getErrorMessage(error),
-      };
+      return message;
     }
+
+    return verification;
   }
 }
 

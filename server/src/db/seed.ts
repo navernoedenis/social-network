@@ -3,14 +3,7 @@ import { dbClient } from '@/config/db-client.config';
 
 import { db } from '@/db';
 import { type NewVerification } from '@/db/files/models';
-import {
-  passwords,
-  profiles,
-  sessionTokens,
-  settings,
-  users,
-  verifications,
-} from '@/db/files/entities';
+import * as entities from '@/db/files/entities';
 
 import {
   createProfile,
@@ -44,16 +37,20 @@ const startSeeding = async () => {
         userData.username = 'denis';
       }
 
-      const [user] = await db.insert(users).values(userData).returning();
+      const [user] = await db
+        .insert(entities.users)
+        .values(userData)
+        .returning();
+
       const hash = await createHash('12345678');
-      await db.insert(passwords).values({
+      await db.insert(entities.passwords).values({
         userId: user.id,
         hash,
       });
 
       const profileData = createProfile(user.id);
       const [profile] = await db
-        .insert(profiles)
+        .insert(entities.profiles)
         .values(profileData)
         .returning();
 
@@ -64,20 +61,20 @@ const startSeeding = async () => {
           payload: createToken(),
           expiredAt: getExpiredAt(2, 'hours'),
         };
-        await db.insert(verifications).values(verificationData);
+        await db.insert(entities.verifications).values(verificationData);
       }
 
       const settingsData = createSettings(user.id);
-      await db.insert(settings).values(settingsData);
+      await db.insert(entities.settings).values(settingsData);
 
       const shouldAdd2FA = Math.random() >= 0.5;
       if (shouldAdd2FA) {
-        await db.insert(settings).values({
+        await db.insert(entities.settings).values({
           userId: user.id,
           is2faEnabled: true,
         });
 
-        await db.insert(verifications).values({
+        await db.insert(entities.verifications).values({
           type: '2fa',
           userId: user.id,
           payload: createToken(),
@@ -97,7 +94,7 @@ const startSeeding = async () => {
             ),
             expiredAt: getExpiredAt(30, 'days'),
           });
-          await db.insert(sessionTokens).values(sessionToken);
+          await db.insert(entities.sessionTokens).values(sessionToken);
         }
       }
     }

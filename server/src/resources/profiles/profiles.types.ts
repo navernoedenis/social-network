@@ -12,7 +12,7 @@ export type UpdateDataDto = z.infer<typeof updateDataSchema>;
 export type UpdatePasswordDto = z.infer<typeof updatePasswordSchema>;
 export type UpdatePhoneDto = z.infer<typeof updatePhoneSchema>;
 
-export type SwitchKey = keyof Pick<
+export type ToggleKey = keyof Pick<
   Profile,
   'isActive' | 'isEmailVerified' | 'isOfficial' | 'isPhoneVerified'
 >;

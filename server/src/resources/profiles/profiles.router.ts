@@ -18,8 +18,15 @@ import { isUsernameTaken } from './profiles.middlewares';
 
 export const profilesRouter = Router();
 
+const validators = {
+  confirmPhone: [validateBody(confirmPhoneSchema)],
+  updateData: [validateBody(updateDataSchema), isUsernameTaken],
+  updatePassword: [validateBody(updatePasswordSchema)],
+  updatePhone: [validateBody(updatePhoneSchema)],
+};
+
 profilesRouter
-  .patch('/me', validateBody(updateDataSchema), isUsernameTaken, updateData)
-  .put('/phone', validateBody(updatePhoneSchema), updatePhone)
-  .post('/phone/confirm', validateBody(confirmPhoneSchema), confirmPhone)
-  .put('/password', validateBody(updatePasswordSchema), updatePassword);
+  .patch('/me', validators.updateData, updateData)
+  .put('/phone', validators.updatePhone, updatePhone)
+  .post('/phone/confirm', validators.confirmPhone, confirmPhone)
+  .put('/password', validators.updatePassword, updatePassword);

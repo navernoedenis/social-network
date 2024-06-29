@@ -1,13 +1,13 @@
-import { and, eq, ne } from 'drizzle-orm';
+import { and, eq, ne, getTableColumns } from 'drizzle-orm';
 import { db } from '@/db';
-import { sessionTokens } from '@/db/files/entities';
 import { getExpiredAt } from '@/utils/helpers';
-
 import { type Request } from '@/types/main';
 
+import * as entities from '@/db/files/entities';
+
 class SessionsTokensService {
-  async createOne(req: Request, payload: { userId: number; token: string }) {
-    await db.insert(sessionTokens).values({
+  async createToken(req: Request, payload: { userId: number; token: string }) {
+    await db.insert(entities.sessionTokens).values({
       userId: payload.userId,
       token: payload.token,
       browser: req.useragent?.browser ?? 'Unknown browser',
@@ -17,22 +17,25 @@ class SessionsTokensService {
     });
   }
 
-  async findOne(token: string) {
+  async getToken(token: string) {
     return db.query.sessionTokens.findFirst({
-      where: eq(sessionTokens.token, token),
+      where: eq(entities.sessionTokens.token, token),
     });
   }
 
-  async findMany(userId: number) {
-    return db.query.sessionTokens.findMany({
-      where: eq(sessionTokens.userId, userId),
-    });
+  async getTokens(userId: number, addTokenColumn = false) {
+    const { token, ...columns } = getTableColumns(entities.sessionTokens);
+
+    return db
+      .select({ ...columns, ...(addTokenColumn && { token }) })
+      .from(entities.sessionTokens)
+      .where(eq(entities.sessionTokens.userId, userId));
   }
 
-  async revokeOne(id: string, userId: number) {
+  async revokeToken(tokenId: string, userId: number) {
     const tokenIds = and(
-      eq(sessionTokens.id, id),
-      eq(sessionTokens.userId, userId)
+      eq(entities.sessionTokens.id, tokenId),
+      eq(entities.sessionTokens.userId, userId)
     );
 
     const token = await db.query.sessionTokens.findFirst({
@@ -44,25 +47,26 @@ class SessionsTokensService {
     }
 
     const [revokedToken] = await db
-      .delete(sessionTokens)
+      .delete(entities.sessionTokens)
       .where(tokenIds)
       .returning();
 
     return revokedToken;
   }
 
-  async revokeMany(userId: number, token: string) {
+  async revokeTokens(userId: number, config: { exceptCurrentToken: string }) {
     const notCurrent = and(
-      eq(sessionTokens.userId, userId),
-      ne(sessionTokens.token, token)
+      eq(entities.sessionTokens.userId, userId),
+      ne(entities.sessionTokens.token, config.exceptCurrentToken)
     );
 
-    await db.delete(sessionTokens).where(notCurrent);
-    return this.findOne(token);
+    await db.delete(entities.sessionTokens).where(notCurrent);
   }
 
-  async deleteOne(token: string) {
-    await db.delete(sessionTokens).where(eq(sessionTokens.token, token));
+  async deleteToken(token: string) {
+    await db
+      .delete(entities.sessionTokens)
+      .where(eq(entities.sessionTokens.token, token));
   }
 }
 

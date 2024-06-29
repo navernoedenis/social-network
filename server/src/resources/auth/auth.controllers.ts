@@ -24,7 +24,6 @@ import {
   createSecureCookieOptions,
   createToken,
   getExpiredAt,
-  InternalServerError,
   parseCookieToken,
   Unauthorized,
   verifyHash,
@@ -43,26 +42,22 @@ export const signup = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { email, password } = req.body as SignUpDto;
+  const dto = req.body as SignUpDto;
 
   try {
-    const user = await usersService.findByEmail(email);
+    const user = await usersService.findByEmail(dto.email);
     if (user) {
       throw new Conflict('Email is already taken');
     }
 
     const token = createToken();
-    const hash = await createHash(password);
+    const hash = await createHash(dto.password);
 
-    const { error: signUpError, data: newUser } = await authService.signUp({
-      email,
+    await authService.signUp({
+      email: dto.email,
       password: hash,
       verificationToken: token,
     });
-
-    if (!newUser) {
-      throw new InternalServerError(signUpError);
-    }
 
     const link = createLink(req, {
       path: `/verifications/email/${token}`,
@@ -92,10 +87,10 @@ export const login = async (
   res: Response,
   next: NextFunction
 ) => {
-  const loginDto = req.body as LoginDto;
+  const dto = req.body as LoginDto;
 
   try {
-    const user = await usersService.findByEmail(loginDto.email, {
+    const user = await usersService.findByEmail(dto.email, {
       withProfile: true,
     });
     if (!user) {
@@ -104,7 +99,7 @@ export const login = async (
 
     const password = await passwordsService.getPassword(user.id);
 
-    const isPasswordsMatch = await verifyHash(loginDto.password, password.hash);
+    const isPasswordsMatch = await verifyHash(dto.password, password.hash);
     if (!isPasswordsMatch) {
       return (
         res
@@ -128,13 +123,13 @@ export const login = async (
     };
 
     const newTokens = createJwtTokens(tokenPayload);
-    await sessionsTokensService.createOne(req, {
+    await sessionsTokensService.createToken(req, {
       userId: user.id,
       token: newTokens.refreshToken,
     });
 
     const cookieToken = createCookieTokenWithOptions(newTokens.refreshToken, {
-      rememberMe: loginDto.rememberMe,
+      rememberMe: dto.rememberMe,
     });
 
     res
@@ -163,7 +158,7 @@ export const logout = async (
 
   try {
     if (refreshToken) {
-      await sessionsTokensService.deleteOne(refreshToken);
+      await sessionsTokensService.deleteToken(refreshToken);
     }
 
     res
@@ -208,7 +203,7 @@ export const updateTokens = async (
       }
     );
 
-    await sessionsTokensService.createOne(req, {
+    await sessionsTokensService.createToken(req, {
       userId: user.id,
       token: newTokens.refreshToken,
     });
@@ -236,10 +231,10 @@ export const forgotPassword = async (
   res: Response,
   next: NextFunction
 ) => {
-  const forgotPasswordDto = req.body as ForgotPasswordDto;
+  const dto = req.body as ForgotPasswordDto;
 
   try {
-    const user = await usersService.findByEmail(forgotPasswordDto.email);
+    const user = await usersService.findByEmail(dto.email);
     if (!user) {
       throw new Unauthorized('No user with this email');
     }

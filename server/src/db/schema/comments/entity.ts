@@ -3,9 +3,10 @@ import {
   index,
   integer,
   pgTable,
+  primaryKey,
+  serial,
   text,
   timestamp,
-  uuid,
 } from 'drizzle-orm/pg-core';
 
 import { users, likes } from '@/db/files/entities';
@@ -13,23 +14,69 @@ import { users, likes } from '@/db/files/entities';
 export const comments = pgTable(
   'comments',
   {
-    id: uuid('id').defaultRandom().primaryKey(),
-    authorId: integer('author_id')
-      .notNull()
-      .references(() => users.id, { onDelete: 'cascade' }),
+    id: serial('id').primaryKey(),
+    userId: integer('user_id')
+      .references(() => users.id)
+      .notNull(),
+    parentId: integer('parent_id'),
     message: text('message').notNull(),
-
     createdAt: timestamp('created_at', { mode: 'date' }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { mode: 'date' })
-      .notNull()
-      .$onUpdate(() => new Date()),
+      .$onUpdate(() => new Date())
+      .notNull(),
   },
   (table) => ({
-    authorIdx: index('comments_author_idx').on(table.authorId),
+    userIdx: index('comments_user_id_idx').on(table.userId),
   })
 );
 
-export const commentsRelations = relations(comments, ({ many }) => ({
-  comments: many(comments),
-  likes: many(likes),
+export const commentsRelations = relations(comments, ({ one, many }) => ({
+  user: one(users, {
+    fields: [comments.userId],
+    references: [users.id],
+  }),
+  parent: one(comments, {
+    fields: [comments.parentId],
+    references: [comments.id],
+    relationName: 'comments',
+  }),
+  comments: many(comments, {
+    relationName: 'comments',
+  }),
+  likes: many(commentsLikes),
+}));
+
+export const commentsLikes = pgTable(
+  'comments_likes',
+  {
+    commentId: integer('comment_id')
+      .references(() => comments.id, { onDelete: 'cascade' })
+      .notNull(),
+    userId: integer('user_id')
+      .references(() => users.id, { onDelete: 'cascade' })
+      .notNull(),
+    likeId: integer('like_id')
+      .references(() => likes.id, { onDelete: 'cascade' })
+      .notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({
+      columns: [table.commentId, table.userId, table.likeId],
+    }),
+  })
+);
+
+export const commentsLikesRelations = relations(commentsLikes, ({ one }) => ({
+  comment: one(comments, {
+    fields: [commentsLikes.commentId],
+    references: [comments.id],
+  }),
+  user: one(users, {
+    fields: [commentsLikes.userId],
+    references: [users.id],
+  }),
+  like: one(likes, {
+    fields: [commentsLikes.likeId],
+    references: [likes.id],
+  }),
 }));

@@ -5,10 +5,10 @@ import swaggerUi from 'swagger-ui-express';
 import yaml from 'yaml';
 
 import { AppHandlers } from '@/utils/app-handlers';
-import { authRouter } from '@/resources/auth';
 import { ENV } from '@/app/env';
 import { isAuthorized } from '@/utils/middlewares';
 
+import { authRouter } from '@/resources/auth';
 import { filesRouter } from '@/resources/files';
 import { postsRouter } from '@/resources/posts';
 import { profilesRouter } from '@/resources/profiles';

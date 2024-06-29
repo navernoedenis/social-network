@@ -1,12 +1,13 @@
 import { eq } from 'drizzle-orm';
 import { type Password } from '@/db/files/models';
 import { db } from '@/db';
-import { passwords } from '@/db/files/entities';
+
+import * as entities from '@/db/files/entities';
 
 class PasswordsService {
   async getPassword(userId: number) {
     const password = await db.query.passwords.findFirst({
-      where: eq(passwords.userId, userId),
+      where: eq(entities.passwords.userId, userId),
     });
 
     return password as Password;
@@ -14,9 +15,9 @@ class PasswordsService {
 
   async updatePassword(userId: number, newPassword: string) {
     await db
-      .update(passwords)
+      .update(entities.passwords)
       .set({ hash: newPassword })
-      .where(eq(passwords.userId, userId));
+      .where(eq(entities.passwords.userId, userId));
   }
 }
 

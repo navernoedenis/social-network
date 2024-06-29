@@ -8,7 +8,7 @@ import { print } from '@/utils/lib';
 type JwtType = 'access' | 'refresh';
 
 const settings: Record<JwtType, [string, string]> = {
-  access: [ENV.JWT_ACCESS_SECRET, '15m'],
+  access: [ENV.JWT_ACCESS_SECRET, ENV.IS_PRODUCTION ? '15m' : '1d'],
   refresh: [ENV.JWT_REFRESH_SECRET, '30d'],
 };
 

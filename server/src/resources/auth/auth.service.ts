@@ -1,63 +1,40 @@
 import { db } from '@/db';
-import { type User } from '@/db/files/models';
-import {
-  passwords,
-  profiles,
-  settings,
-  users,
-  verifications,
-} from '@/db/files/entities';
+import { getExpiredAt } from '@/utils/helpers';
 
-import { type ExecutionResult } from '@/types/main';
-import { getErrorMessage, getExpiredAt } from '@/utils/helpers';
+import * as entities from '@/db/files/entities';
 
 class AuthService {
-  async signUp({
-    email,
-    password,
-    verificationToken,
-  }: {
+  async signUp(data: {
     email: string;
     password: string;
     verificationToken: string;
-  }): ExecutionResult<User> {
-    try {
-      let newUser!: User;
+  }) {
+    await db.transaction(async (ctx) => {
+      const [user] = await ctx
+        .insert(entities.users)
+        .values({ email: data.email })
+        .returning();
 
-      await db.transaction(async (ctx) => {
-        const [user] = await ctx.insert(users).values({ email }).returning();
-
-        await ctx.insert(passwords).values({
-          userId: user.id,
-          hash: password,
-        });
-
-        await ctx.insert(profiles).values({
-          userId: user.id,
-        });
-
-        await ctx.insert(verifications).values({
-          type: 'email',
-          userId: user.id,
-          payload: verificationToken,
-          expiredAt: getExpiredAt(15, 'minutes'),
-        });
-
-        await ctx.insert(settings).values({
-          userId: user.id,
-        });
-
-        newUser = user;
+      await ctx.insert(entities.passwords).values({
+        userId: user.id,
+        hash: data.password,
       });
 
-      return {
-        data: newUser,
-      };
-    } catch (error) {
-      return {
-        error: getErrorMessage(error),
-      };
-    }
+      await ctx.insert(entities.profiles).values({
+        userId: user.id,
+      });
+
+      await ctx.insert(entities.verifications).values({
+        type: 'email',
+        userId: user.id,
+        payload: data.verificationToken,
+        expiredAt: getExpiredAt(15, 'minutes'),
+      });
+
+      await ctx.insert(entities.settings).values({
+        userId: user.id,
+      });
+    });
   }
 }
 

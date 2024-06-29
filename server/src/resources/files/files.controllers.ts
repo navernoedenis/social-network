@@ -8,7 +8,7 @@ import {
 } from '@/types/main';
 
 import { httpStatus, mediaTypes } from '@/utils/constants';
-import { BadRequest } from '@/utils/helpers';
+import { BadRequest, Forbidden } from '@/utils/helpers';
 import { awsS3Service } from '@/utils/services';
 
 import {
@@ -58,7 +58,7 @@ export const uploadFiles = async (
 
     const newFiles = await awsS3Service.uploadFiles(mediaFiles);
     const newFilesData = newFiles.map((file) => ({
-      authorId: user.id,
+      userId: user.id,
       bucketKey: file.bucketKey,
       name: file.filename,
       type: mediaType,
@@ -84,16 +84,21 @@ export const deleteFiles = async (
   next: NextFunction
 ) => {
   const user = req.user!;
-  const deleteFilesDto = req.body as DeleteFilesDto;
+  const dto = req.body as DeleteFilesDto;
 
   try {
-    const files = await fileService.getFiles(user.id, deleteFilesDto.fileIds);
+    const files = await fileService.getFiles(dto.fileIds);
     if (!files.length) {
       throw new BadRequest('Invalid ids or no files to remove 🫷');
     }
 
+    const isMyFiles = files.every((file) => file.userId === user.id);
+    if (!isMyFiles) {
+      throw new Forbidden('You are trying to remove not yours files 📢');
+    }
+
     const bucketKeys: string[] = [];
-    const filesIds: string[] = [];
+    const filesIds: number[] = [];
 
     for (const file of files) {
       bucketKeys.push(file.bucketKey);
