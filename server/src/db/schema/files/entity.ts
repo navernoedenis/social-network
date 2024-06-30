@@ -7,8 +7,9 @@ import {
   text,
   varchar,
 } from 'drizzle-orm/pg-core';
-import { mediaTypes } from '@/utils/constants';
+
 import { users } from '@/db/files/entities';
+import { mediaTypes } from '@/utils/constants';
 
 export const files = pgTable(
   'files',

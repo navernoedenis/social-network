@@ -12,7 +12,7 @@ export const checkIsEmailVerified = async (
   const user = req.user!;
 
   try {
-    const profile = await profilesService.getProfile(user.id);
+    const profile = await profilesService.getOne(user.id);
     if (profile?.isEmailVerified) {
       throw new Conflict('Your email is already verified');
     }

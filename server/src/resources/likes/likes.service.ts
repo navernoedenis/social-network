@@ -4,19 +4,19 @@ import { db } from '@/db';
 import * as entities from '@/db/files/entities';
 
 class LikesService {
-  async createLike(value: number) {
+  async createOne(value: number) {
     const likes = await db.insert(entities.likes).values({ value }).returning();
     return likes[0];
   }
 
-  async getLike(id: number) {
+  async getOne(id: number) {
     const like = await db.query.likes.findFirst({
       where: eq(entities.likes.id, id),
     });
     return like ?? null;
   }
 
-  async updateLike(id: number, value: number) {
+  async updateOne(id: number, value: number) {
     return db
       .update(entities.likes)
       .set({ value })
@@ -24,7 +24,7 @@ class LikesService {
       .returning();
   }
 
-  async removeLike(id: number) {
+  async deleteOne(id: number) {
     await db.delete(entities.likes).where(eq(entities.likes.id, id));
   }
 }

@@ -6,7 +6,7 @@ import * as entities from '@/db/files/entities';
 import { type CreatePostDto, type Post, type PostComment } from './posts.types';
 
 class PostsService {
-  async createPost(userId: number, dto: CreatePostDto) {
+  async createOne(userId: number, dto: CreatePostDto) {
     let id!: number;
 
     await db.transaction(async (ctx) => {
@@ -27,11 +27,11 @@ class PostsService {
       id = post.id;
     });
 
-    const newPost = await this.getPost(id, userId)!;
+    const newPost = await this.getOne(id, userId)!;
     return newPost!;
   }
 
-  async getPost(id: number, userId: number) {
+  async getOne(id: number, userId: number) {
     // Todo: REWRITE ON SQL
     const post = await db.query.posts.findFirst({
       where: eq(entities.posts.id, id),
@@ -60,7 +60,7 @@ class PostsService {
     };
   }
 
-  async getPosts(config: { page: number; limit: number; userId: number }) {
+  async getMany(config: { page: number; limit: number; userId: number }) {
     // Todo: REWRITE ON SQL
     const { page, limit, userId } = config;
 
@@ -99,7 +99,7 @@ class PostsService {
     return posts;
   }
 
-  async removePost(id: number) {
+  async deteleOne(id: number) {
     const [removedPost] = await db
       .delete(entities.posts)
       .where(eq(entities.posts.id, id))

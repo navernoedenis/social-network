@@ -6,7 +6,7 @@ import { type Request } from '@/types/main';
 import * as entities from '@/db/files/entities';
 
 class SessionsTokensService {
-  async createToken(req: Request, payload: { userId: number; token: string }) {
+  async createOne(req: Request, payload: { userId: number; token: string }) {
     await db.insert(entities.sessionTokens).values({
       userId: payload.userId,
       token: payload.token,
@@ -17,13 +17,13 @@ class SessionsTokensService {
     });
   }
 
-  async getToken(token: string) {
+  async getOne(token: string) {
     return db.query.sessionTokens.findFirst({
       where: eq(entities.sessionTokens.token, token),
     });
   }
 
-  async getTokens(userId: number, addTokenColumn = false) {
+  async getMany(userId: number, addTokenColumn = false) {
     const { token, ...columns } = getTableColumns(entities.sessionTokens);
 
     return db
@@ -32,7 +32,7 @@ class SessionsTokensService {
       .where(eq(entities.sessionTokens.userId, userId));
   }
 
-  async revokeToken(tokenId: string, userId: number) {
+  async revokeOne(tokenId: string, userId: number) {
     const tokenIds = and(
       eq(entities.sessionTokens.id, tokenId),
       eq(entities.sessionTokens.userId, userId)
@@ -54,7 +54,7 @@ class SessionsTokensService {
     return revokedToken;
   }
 
-  async revokeTokens(userId: number, config: { exceptCurrentToken: string }) {
+  async revokeMany(userId: number, config: { exceptCurrentToken: string }) {
     const notCurrent = and(
       eq(entities.sessionTokens.userId, userId),
       ne(entities.sessionTokens.token, config.exceptCurrentToken)
@@ -63,7 +63,7 @@ class SessionsTokensService {
     await db.delete(entities.sessionTokens).where(notCurrent);
   }
 
-  async deleteToken(token: string) {
+  async deleteOne(token: string) {
     await db
       .delete(entities.sessionTokens)
       .where(eq(entities.sessionTokens.token, token));

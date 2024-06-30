@@ -9,15 +9,18 @@ import {
 } from 'drizzle-orm/pg-core';
 
 import {
+  files,
+  friends,
+  notifications,
   passwords,
   posts,
   profiles,
   sessionTokens,
   settings,
-  files,
+  subscriptions,
 } from '@/db/files/entities';
 
-const roles = ['user', 'admin', 'root'] as const;
+import { roles } from '@/utils/constants';
 
 export const users = pgTable(
   'users',
@@ -49,7 +52,11 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     fields: [users.id],
     references: [settings.userId],
   }),
-  posts: many(posts),
+
   files: many(files),
+  notificatinos: many(notifications),
+  posts: many(posts),
+  subscriptions: many(subscriptions),
   tokens: many(sessionTokens),
+  friends: many(friends),
 }));

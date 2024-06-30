@@ -14,3 +14,19 @@ export const checkIsExpired = (expiredAt: Date | undefined) => {
   const now = new Date();
   return now >= endTime;
 };
+
+export const getDate = (date: Date | string) => {
+  const d = new Date(date);
+
+  const day = d.getDate();
+  const month = d.getMonth() + 1;
+  const year = d.getFullYear();
+
+  return {
+    day,
+    month,
+    monthLong: d.toLocaleDateString('default', { month: 'long' }),
+    monthShort: d.toLocaleDateString('default', { month: 'short' }),
+    year,
+  };
+};

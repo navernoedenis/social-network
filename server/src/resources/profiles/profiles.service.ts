@@ -6,7 +6,7 @@ import { type ToggleKey, type UpdateFields } from './profiles.types';
 import * as entities from '@/db/files/entities';
 
 class ProfilesService {
-  async getProfile(userId: number) {
+  async getOne(userId: number) {
     const profile = await db.query.profiles.findFirst({
       where: eq(entities.profiles.userId, userId),
     });
@@ -24,7 +24,7 @@ class ProfilesService {
       .where(eq(entities.profiles.userId, userId));
   }
 
-  async updateFields(userId: number, fields: UpdateFields) {
+  async updateOne(userId: number, fields: UpdateFields) {
     return db
       .update(entities.profiles)
       .set(fields)

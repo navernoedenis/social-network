@@ -1,6 +1,5 @@
 import '@/packages';
 import { dbClient } from '@/config/db-client.config';
-
 import { db } from '@/db';
 import { type NewVerification } from '@/db/files/models';
 import * as entities from '@/db/files/entities';

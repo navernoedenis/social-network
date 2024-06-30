@@ -17,7 +17,7 @@ export const getSessionTokens = async (
   const user = req.user!;
 
   try {
-    const tokens = await sessionsTokensService.getTokens(user.id);
+    const tokens = await sessionsTokensService.getMany(user.id);
 
     res.status(httpStatus.OK).json({
       success: true,
@@ -39,7 +39,7 @@ export const revokeSessionToken = async (
   const user = req.user!;
 
   try {
-    const revokedToken = await sessionsTokensService.revokeToken(
+    const revokedToken = await sessionsTokensService.revokeOne(
       tokenId,
       user.id
     );
@@ -68,7 +68,7 @@ export const revokeSessionTokens = async (
   const user = req.user!;
 
   try {
-    await sessionsTokensService.revokeTokens(user.id, {
+    await sessionsTokensService.revokeMany(user.id, {
       exceptCurrentToken: refreshToken,
     });
 

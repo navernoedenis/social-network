@@ -4,8 +4,9 @@ import { Router } from 'express';
 import swaggerUi from 'swagger-ui-express';
 import yaml from 'yaml';
 
-import { AppHandlers } from '@/utils/app-handlers';
 import { ENV } from '@/app/env';
+
+import { appHandlers } from '@/utils/app-handlers';
 import { isAuthorized } from '@/utils/middlewares';
 
 import { authRouter } from '@/resources/auth';
@@ -36,6 +37,6 @@ router.use('/api/v1/profiles', profilesRouter);
 router.use('/api/v1/session-tokens', sessionTokensRouter);
 router.use('/api/v1/users', usersRouter);
 
-router.get('/test', AppHandlers.testHandler);
-router.use('*', AppHandlers.notFoundtHandler);
-router.use(AppHandlers.httpErrorHandler);
+router.get('/test', appHandlers.test);
+router.use('*', appHandlers.notFound);
+router.use(appHandlers.httpError);

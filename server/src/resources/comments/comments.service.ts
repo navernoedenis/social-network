@@ -5,7 +5,7 @@ import { type CommentLike, type NewComment } from '@/db/files/models';
 import * as entities from '@/db/files/entities';
 
 class CommentsService {
-  async createComment(data: NewComment) {
+  async createOne(data: NewComment) {
     const [comment] = await db
       .insert(entities.comments)
       .values(data)
@@ -21,7 +21,7 @@ class CommentsService {
     return newComment!;
   }
 
-  async updateComment(id: number, message: string) {
+  async updateOne(id: number, message: string) {
     const [comment] = await db
       .update(entities.comments)
       .set({ message })
@@ -31,7 +31,7 @@ class CommentsService {
     return comment;
   }
 
-  async getComment(id: number) {
+  async getOne(id: number) {
     return db.query.comments.findFirst({
       where: eq(entities.comments.id, id),
       with: {
@@ -40,7 +40,7 @@ class CommentsService {
     });
   }
 
-  async removeComment(id: number) {
+  async deleteOne(id: number) {
     const [removedComment] = await db
       .delete(entities.comments)
       .where(eq(entities.comments.id, id))
@@ -49,7 +49,7 @@ class CommentsService {
     return removedComment;
   }
 
-  async likeComment(data: CommentLike) {
+  async likeOne(data: CommentLike) {
     await db.insert(entities.commentsLikes).values(data);
   }
 }

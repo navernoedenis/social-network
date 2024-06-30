@@ -21,7 +21,7 @@ class UsersService {
     return this.findOne('username', username, config);
   }
 
-  async updateFields(userId: number, fields: UpdateFields) {
+  async updateOne(userId: number, fields: UpdateFields) {
     return db
       .update(entities.users)
       .set(fields)
@@ -29,7 +29,7 @@ class UsersService {
       .returning();
   }
 
-  async deleteUser(userId: number) {
+  async deleteOne(userId: number) {
     const [user] = await db
       .delete(entities.users)
       .where(eq(entities.users.id, userId))

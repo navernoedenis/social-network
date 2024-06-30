@@ -14,3 +14,9 @@ export type UpdatePasswordDto = z.infer<typeof updatePasswordSchema>;
 
 export type LoginTwoFaDto = LoginDto & { otp: number };
 export type TwoFaPayload = LoginTwoFaDto;
+
+export type SignUpData = {
+  email: string;
+  password: string;
+  verificationToken: string;
+};

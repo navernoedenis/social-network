@@ -14,15 +14,15 @@ import * as entities from '@/db/files/entities';
 class VerificationsService {
   // 2FA
   async create2FAVerification(config: CreateVerificationConfig) {
-    await this.createVerification('2fa', config);
+    await this.createOne('2fa', config);
   }
 
   async get2FAVerification(config: GetVerificationConfig) {
-    return this.getVerification('2fa', config);
+    return this.getOne('2fa', config);
   }
 
   async delete2FAVerification(verificationId: string) {
-    return this.deleteVerification({
+    return this.deleteOne({
       type: '2fa',
       verificationId,
     });
@@ -30,15 +30,15 @@ class VerificationsService {
 
   // Email
   async createEmailVerification(config: CreateVerificationConfig) {
-    await this.createVerification('email', config);
+    await this.createOne('email', config);
   }
 
   async getEmailVerification(config: GetVerificationConfig) {
-    return this.getVerification('email', config);
+    return this.getOne('email', config);
   }
 
   async deleteEmailVerification(verificationId: string) {
-    return this.deleteVerification({
+    return this.deleteOne({
       type: 'email',
       verificationId,
     });
@@ -46,15 +46,15 @@ class VerificationsService {
 
   // Forgot password
   async createForgotPasswordVerification(config: CreateVerificationConfig) {
-    await this.createVerification('forgot-password', config);
+    await this.createOne('forgot-password', config);
   }
 
   async getForgotPasswordVerification(config: GetVerificationConfig) {
-    return this.getVerification('forgot-password', config);
+    return this.getOne('forgot-password', config);
   }
 
   async deleteForgotPasswordVerification(verificationId: string) {
-    return this.deleteVerification({
+    return this.deleteOne({
       type: 'forgot-password',
       verificationId,
     });
@@ -66,24 +66,21 @@ class VerificationsService {
 
   // Phone
   async createPhoneVerification(config: CreateVerificationConfig) {
-    await this.createVerification('phone', config);
+    await this.createOne('phone', config);
   }
 
   async getPhoneVerification(config: GetVerificationConfig) {
-    return this.getVerification('phone', config);
+    return this.getOne('phone', config);
   }
 
   async deletePhoneVerification(verificationId: string) {
-    return this.deleteVerification({
+    return this.deleteOne({
       type: 'phone',
       verificationId,
     });
   }
 
-  private createVerification(
-    type: VerificationType,
-    config: CreateVerificationConfig
-  ) {
+  private createOne(type: VerificationType, config: CreateVerificationConfig) {
     const { userId, payload, expiredAt } = config;
 
     return db.insert(entities.verifications).values({
@@ -94,10 +91,7 @@ class VerificationsService {
     });
   }
 
-  private async getVerification(
-    type: VerificationType,
-    config: GetVerificationConfig
-  ) {
+  private async getOne(type: VerificationType, config: GetVerificationConfig) {
     const { userId, skipExpireCheking = false } = config;
 
     const verification = await db.query.verifications.findFirst({
@@ -113,7 +107,7 @@ class VerificationsService {
 
     if (!verification) return null;
     if (checkIsExpired(verification.expiredAt)) {
-      await this.deleteVerification({
+      await this.deleteOne({
         type: type,
         verificationId: verification.id,
       });
@@ -123,10 +117,7 @@ class VerificationsService {
     return verification;
   }
 
-  private deleteVerification(data: {
-    type: VerificationType;
-    verificationId: string;
-  }) {
+  private deleteOne(data: { type: VerificationType; verificationId: string }) {
     return db
       .delete(entities.verifications)
       .where(
@@ -148,7 +139,7 @@ class VerificationsService {
     if (!verification) return 'Invalid token';
 
     if (checkIsExpired(verification.expiredAt)) {
-      await this.deleteVerification({
+      await this.deleteOne({
         type: data.type,
         verificationId: verification.id,
       });

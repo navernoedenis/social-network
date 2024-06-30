@@ -30,7 +30,7 @@ export const createPost = async (
   const dto = req.body as CreatePostDto;
 
   try {
-    const post = await postsService.createPost(user.id, dto);
+    const post = await postsService.createOne(user.id, dto);
 
     res.status(httpStatus.OK).json({
       success: true,
@@ -52,7 +52,7 @@ export const getPost = async (
   const user = req.user!;
 
   try {
-    const post = await postsService.getPost(postId, user.id);
+    const post = await postsService.getOne(postId, user.id);
 
     res.status(httpStatus.OK).json({
       success: true,
@@ -74,7 +74,7 @@ export const getPosts = async (
   const user = req.user!;
 
   try {
-    const posts = await postsService.getPosts({
+    const posts = await postsService.getMany({
       userId: user.id,
       page: page ? parseInt(page) : 1,
       limit: limit ? parseInt(limit) : 5,
@@ -112,10 +112,10 @@ export const togglePostLike = async (
         isLiked = null;
         message = 'Your post like has been removed ⚡';
       } else {
-        await likesService.updateLike(postLike.likeId, dto.value);
+        await likesService.updateOne(postLike.likeId, dto.value);
       }
     } else {
-      const like = await likesService.createLike(dto.value);
+      const like = await likesService.createOne(dto.value);
       await postsService.createLike({
         likeId: like.id,
         postId,
@@ -146,7 +146,7 @@ export const createComment = async (
   const user = req.user!;
 
   try {
-    const comment = await commentsService.createComment({
+    const comment = await commentsService.createOne({
       message: dto.message,
       parentId: dto.parentId,
       userId: user.id,
@@ -176,7 +176,7 @@ export const updateComment = async (
   const dto = req.body as UpdateCommentDto;
 
   try {
-    const updatedComment = await commentsService.updateComment(
+    const updatedComment = await commentsService.updateOne(
       commentId,
       dto.message
     );
@@ -201,7 +201,7 @@ export const removeComment = async (
   const user = req.user!;
 
   try {
-    const comment = await commentsService.getComment(commentId);
+    const comment = await commentsService.getOne(commentId);
     const isAuthor = comment!.userId === user.id;
     const isAdminOrRoot = user.role === 'admin' || user.role === 'root';
 
@@ -209,7 +209,7 @@ export const removeComment = async (
       throw new Forbidden('You are not an author of this comment 👀');
     }
 
-    const removedComment = await commentsService.removeComment(commentId);
+    const removedComment = await commentsService.deleteOne(commentId);
 
     res.status(httpStatus.OK).json({
       success: true,
@@ -243,10 +243,10 @@ export const toggleCommentLike = async (
         isLiked = null;
         message = 'Your comment like has been removed 🍈🍉';
       } else {
-        await likesService.updateLike(commentLike.likeId, dto.value);
+        await likesService.updateOne(commentLike.likeId, dto.value);
       }
     } else {
-      const like = await likesService.createLike(dto.value);
+      const like = await likesService.createOne(dto.value);
       await postsService.createCommentLike({
         likeId: like.id,
         commentId,

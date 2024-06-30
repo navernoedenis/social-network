@@ -4,18 +4,18 @@ import { NewFile } from '@/db/files/mocks';
 
 import * as entities from '@/db/files/entities';
 
-class FileService {
-  async createFiles(newFiles: NewFile[]) {
+class FilesService {
+  async createMany(newFiles: NewFile[]) {
     return db.insert(entities.files).values(newFiles).returning();
   }
 
-  async getFiles(fileIds: number[]) {
+  async getMany(fileIds: number[]) {
     return db.query.files.findMany({
       where: inArray(entities.files.id, fileIds),
     });
   }
 
-  async deleteFiles(userId: number, fileIds: number[]) {
+  async deleteMany(userId: number, fileIds: number[]) {
     const myFiles = and(
       eq(entities.files.userId, userId),
       inArray(entities.files.id, fileIds)
@@ -24,4 +24,4 @@ class FileService {
   }
 }
 
-export const fileService = new FileService();
+export const filesService = new FilesService();

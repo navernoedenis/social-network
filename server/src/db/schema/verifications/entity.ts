@@ -10,8 +10,7 @@ import {
 } from 'drizzle-orm/pg-core';
 
 import { users } from '@/db/files/entities';
-
-const types = ['2fa', 'email', 'forgot-password', 'phone'] as const;
+import { verificationTypes } from '@/utils/constants';
 
 export const verifications = pgTable(
   'verifications',
@@ -20,7 +19,7 @@ export const verifications = pgTable(
     userId: integer('user_id')
       .references(() => users.id, { onDelete: 'cascade' })
       .notNull(),
-    type: text('type', { enum: types }).notNull(),
+    type: text('type', { enum: verificationTypes }).notNull(),
     payload: varchar('payload', { length: 255 }).notNull(),
     expiredAt: timestamp('expired_at', { mode: 'date' }).notNull(),
   },

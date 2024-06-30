@@ -3,10 +3,10 @@ import path from 'node:path';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { DeleteObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 
+import { type MediaFile } from '@/db/files/models';
 import { awsS3Client } from '@/config/aws-s3-client.config';
 import { ENV } from '@/app/env';
 import { createToken } from '@/utils/helpers';
-import { type MediaFile } from '@/types/main';
 
 type BucketFile = {
   bucketKey: string;

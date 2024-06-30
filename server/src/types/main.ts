@@ -1,10 +1,8 @@
 export { type Request, type Response, type NextFunction } from 'express';
-import { type File } from 'formidable';
-
-import { mediaTypes } from '@/utils/constants/files';
+import { roles } from '@/utils/constants';
 
 export type ENV_MODE = 'development' | 'production';
-export type Role = 'user' | 'admin' | 'root';
+export type Role = (typeof roles)[number];
 
 export type AuthUser = {
   id: number;
@@ -25,6 +23,3 @@ export type HttpError = {
 export type ExecutionResult<T> = Promise<
   { data: T; error?: never } | { data?: never; error: string }
 >;
-
-export type MediaType = (typeof mediaTypes)[number];
-export type MediaFile = File;

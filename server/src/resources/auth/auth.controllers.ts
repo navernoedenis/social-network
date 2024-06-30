@@ -97,7 +97,7 @@ export const login = async (
       throw new Unauthorized('No user with this email');
     }
 
-    const password = await passwordsService.getPassword(user.id);
+    const password = await passwordsService.getOne(user.id);
 
     const isPasswordsMatch = await verifyHash(dto.password, password.hash);
     if (!isPasswordsMatch) {
@@ -123,7 +123,7 @@ export const login = async (
     };
 
     const newTokens = createJwtTokens(tokenPayload);
-    await sessionsTokensService.createToken(req, {
+    await sessionsTokensService.createOne(req, {
       userId: user.id,
       token: newTokens.refreshToken,
     });
@@ -158,7 +158,7 @@ export const logout = async (
 
   try {
     if (refreshToken) {
-      await sessionsTokensService.deleteToken(refreshToken);
+      await sessionsTokensService.deleteOne(refreshToken);
     }
 
     res
@@ -203,7 +203,7 @@ export const updateTokens = async (
       }
     );
 
-    await sessionsTokensService.createToken(req, {
+    await sessionsTokensService.createOne(req, {
       userId: user.id,
       token: newTokens.refreshToken,
     });
@@ -382,7 +382,7 @@ export const updatePassword = async (
 
     await Promise.all([
       verificationsService.deleteForgotPasswordVerification(verification.id),
-      passwordsService.updatePassword(+userId, newPassword),
+      passwordsService.updateOne(+userId, newPassword),
     ]);
 
     res

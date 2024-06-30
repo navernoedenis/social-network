@@ -1,24 +1,23 @@
 import formidable from 'formidable';
 import {
   type HttpResponse,
-  type MediaType,
   type NextFunction,
   type Request,
   type Response,
 } from '@/types/main';
 
+import { type MediaType } from '@/db/files/models';
 import { httpStatus, mediaTypes } from '@/utils/constants';
 import { BadRequest, Forbidden } from '@/utils/helpers';
 import { awsS3Service } from '@/utils/services';
 
+import { filesService } from './files.service';
+import { type DeleteFilesDto } from './files.types';
 import {
   checkMaxQuantity,
   checkMaxSize,
   checkMimetimesEquality,
 } from './files.helpers';
-
-import { fileService } from './files.service';
-import { type DeleteFilesDto } from './files.types';
 
 export const uploadFiles = async (
   req: Request,
@@ -65,7 +64,7 @@ export const uploadFiles = async (
       url: file.url,
     }));
 
-    const uploadedFiles = await fileService.createFiles(newFilesData);
+    const uploadedFiles = await filesService.createMany(newFilesData);
 
     res.status(httpStatus.OK).json({
       success: true,
@@ -87,7 +86,7 @@ export const deleteFiles = async (
   const dto = req.body as DeleteFilesDto;
 
   try {
-    const files = await fileService.getFiles(dto.fileIds);
+    const files = await filesService.getMany(dto.fileIds);
     if (!files.length) {
       throw new BadRequest('Invalid ids or no files to remove 🫷');
     }
@@ -107,7 +106,7 @@ export const deleteFiles = async (
 
     await Promise.all([
       awsS3Service.deleteFiles(bucketKeys),
-      fileService.deleteFiles(user.id, filesIds),
+      filesService.deleteMany(user.id, filesIds),
     ]);
 
     res.status(httpStatus.OK).json({

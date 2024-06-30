@@ -1,4 +1,4 @@
-import { type MediaType, type MediaFile } from '@/types/main';
+import { type MediaType, type MediaFile } from '@/db/files/models';
 import { convertToBytes } from '@/utils/helpers';
 
 export const checkMaxQuantity = (

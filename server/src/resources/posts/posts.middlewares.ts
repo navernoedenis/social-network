@@ -15,7 +15,7 @@ export const hasPost = async (
   const user = req.user!;
 
   try {
-    const post = await postsService.getPost(postId, user.id);
+    const post = await postsService.getOne(postId, user.id);
     if (!post) {
       throw new NotFound("Post doesn't exist");
     }
@@ -34,7 +34,7 @@ export const hasComment = async (
   const commentId = parseInt(req.params.cid);
 
   try {
-    const comment = await commentsService.getComment(commentId);
+    const comment = await commentsService.getOne(commentId);
     if (!comment) {
       throw new NotFound("Comment doesn't exist");
     }
@@ -55,7 +55,7 @@ export const checkCommentParent = async (
   try {
     if (!dto.parentId) return next();
 
-    const parent = await commentsService.getComment(dto.parentId);
+    const parent = await commentsService.getOne(dto.parentId);
     if (!parent) {
       throw new NotFound("Parent comment doesn't exist");
     }
@@ -75,7 +75,7 @@ export const checkCommentUpdate = async (
   const user = req.user!;
 
   try {
-    const comment = await commentsService.getComment(commentId);
+    const comment = await commentsService.getOne(commentId);
     if (user.id !== comment!.userId) {
       throw new Forbidden('You are not an author of this comment');
     }

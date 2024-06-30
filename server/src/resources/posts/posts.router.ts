@@ -35,7 +35,7 @@ const validators = {
   ],
   createPost: [validateBody(createPostSchema)],
   getPost: [hasPost],
-  removePost: [hasComment],
+  removeComment: [hasComment],
   toggleCommentLike: [validateBody(createLikeSchema), hasComment],
   togglePostLike: [validateBody(createLikeSchema), hasPost],
   updateComment: [
@@ -54,7 +54,7 @@ postsRouter
 
   .post('/:id/comments', validators.createComment, createComment)
   .put('/:id/comments/:cid', validators.updateComment, updateComment)
-  .delete('/:id/comments/:cid', validators.removePost, removeComment)
+  .delete('/:id/comments/:cid', validators.removeComment, removeComment)
   .patch(
     '/:id/comments/:cid/like',
     validators.toggleCommentLike,

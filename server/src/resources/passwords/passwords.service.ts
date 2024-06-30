@@ -5,7 +5,7 @@ import { db } from '@/db';
 import * as entities from '@/db/files/entities';
 
 class PasswordsService {
-  async getPassword(userId: number) {
+  async getOne(userId: number) {
     const password = await db.query.passwords.findFirst({
       where: eq(entities.passwords.userId, userId),
     });
@@ -13,7 +13,7 @@ class PasswordsService {
     return password as Password;
   }
 
-  async updatePassword(userId: number, newPassword: string) {
+  async updateOne(userId: number, newPassword: string) {
     await db
       .update(entities.passwords)
       .set({ hash: newPassword })

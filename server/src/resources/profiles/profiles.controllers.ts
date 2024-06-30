@@ -36,19 +36,19 @@ export const updateData = async (
 
   try {
     const promises: Promise<unknown>[] = [
-      profilesService.updateFields(user.id, otherUpdateData),
+      profilesService.updateOne(user.id, otherUpdateData),
     ];
 
     const isUsernameEmpty = username?.trim().length === 0;
     if (!isUsernameEmpty) {
-      const promise = usersService.updateFields(user.id, {
+      const promise = usersService.updateOne(user.id, {
         username,
       });
       promises.push(promise);
     }
 
     await Promise.all(promises);
-    const updatedProfile = await profilesService.getProfile(user.id);
+    const updatedProfile = await profilesService.getOne(user.id);
 
     res.status(httpStatus.OK).json({
       success: true,
@@ -82,7 +82,7 @@ export const updatePhone = async (
       throw new BadRequest(message);
     }
 
-    const profile = await profilesService.getProfile(user.id);
+    const profile = await profilesService.getOne(user.id);
     if (profile.phone === dto.phone) {
       throw new BadRequest('You already have this phone number');
     }
@@ -169,7 +169,7 @@ export const updatePassword = async (
   const user = req.user!;
 
   try {
-    const currentPassword = await passwordsService.getPassword(user.id);
+    const currentPassword = await passwordsService.getOne(user.id);
 
     const isCurrentPasswordMatch = await verifyHash(
       dto.currentPassword,
@@ -180,7 +180,7 @@ export const updatePassword = async (
     }
 
     const hash = await createHash(dto.password);
-    await passwordsService.updatePassword(user.id, hash);
+    await passwordsService.updateOne(user.id, hash);
 
     res.status(httpStatus.OK).json({
       success: true,

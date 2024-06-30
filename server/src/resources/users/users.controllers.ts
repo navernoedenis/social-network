@@ -17,7 +17,7 @@ export const deleteMyAccount = async (
   const user = req.user!;
 
   try {
-    const me = await usersService.deleteUser(user.id);
+    const me = await usersService.deleteOne(user.id);
     if (!me) {
       throw new Forbidden('You have already removed yourself 🤗');
     }
