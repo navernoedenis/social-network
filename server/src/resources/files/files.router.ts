@@ -6,10 +6,6 @@ import { deleteFilesSchema } from './files.schemas';
 
 export const filesRouter = Router();
 
-const validators = {
-  deleteFiles: [validateBody(deleteFilesSchema)],
-};
-
 filesRouter
   .post('/', uploadFiles)
-  .delete('/', validators.deleteFiles, deleteFiles);
+  .delete('/', validateBody(deleteFilesSchema), deleteFiles);

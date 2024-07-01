@@ -27,36 +27,31 @@ import {
 
 export const postsRouter = Router();
 
-const validators = {
-  createComment: [
+postsRouter
+  .get('/', getPosts)
+  .post('/', validateBody(createPostSchema), createPost)
+
+  .get('/:id', hasPost, getPost)
+  .patch('/:id/like', validateBody(createLikeSchema), hasPost, togglePostLike)
+
+  .post(
+    '/:id/comments',
     validateBody(createCommentSchema),
     hasPost,
     checkCommentParent,
-  ],
-  createPost: [validateBody(createPostSchema)],
-  getPost: [hasPost],
-  removeComment: [hasComment],
-  toggleCommentLike: [validateBody(createLikeSchema), hasComment],
-  togglePostLike: [validateBody(createLikeSchema), hasPost],
-  updateComment: [
+    createComment
+  )
+  .put(
+    '/:id/comments/:cid',
     validateBody(updateCommentSchema),
     hasComment,
     checkCommentUpdate,
-  ],
-};
-
-postsRouter
-  .get('/', getPosts)
-  .post('/', validators.createPost, createPost)
-
-  .get('/:id', validators.getPost, getPost)
-  .patch('/:id/like', validators.togglePostLike, togglePostLike)
-
-  .post('/:id/comments', validators.createComment, createComment)
-  .put('/:id/comments/:cid', validators.updateComment, updateComment)
-  .delete('/:id/comments/:cid', validators.removeComment, removeComment)
+    updateComment
+  )
+  .delete('/:id/comments/:cid', hasComment, removeComment)
   .patch(
     '/:id/comments/:cid/like',
-    validators.toggleCommentLike,
+    validateBody(createLikeSchema),
+    hasComment,
     toggleCommentLike
   );

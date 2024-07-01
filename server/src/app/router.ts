@@ -10,6 +10,7 @@ import { appHandlers } from '@/utils/app-handlers';
 import { isAuthorized } from '@/utils/middlewares';
 
 import { authRouter } from '@/resources/auth';
+import { bookmarksRouter } from '@/resources/bookmarks';
 import { filesRouter } from '@/resources/files';
 import { postsRouter } from '@/resources/posts';
 import { profilesRouter } from '@/resources/profiles';
@@ -31,6 +32,7 @@ router.use('/auth', authRouter);
 router.use('/verifications', verificationsRouter);
 
 router.use('/api', isAuthorized);
+router.use('/api/v1/bookmarks', bookmarksRouter);
 router.use('/api/v1/files', filesRouter);
 router.use('/api/v1/posts', postsRouter);
 router.use('/api/v1/profiles', profilesRouter);

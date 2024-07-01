@@ -25,20 +25,16 @@ import {
 
 export const authRouter = Router();
 
-const validators = {
-  signup: [validateBody(signUpSchema)],
-  forgotPassword: [validateBody(forgotPasswordSchema)],
-  login: [validateBody(loginSchema), twoFactorAuthentication],
-  updatePassword: [validateBody(updatePasswordSchema)],
-  verifyToken: [checkCookieToken, verifyCookieToken],
-};
-
 authRouter
-  .post('/signup', validators.signup, signup)
-  .post('/login', validators.login, login)
+  .post('/signup', validateBody(signUpSchema), signup)
+  .post('/login', validateBody(loginSchema), twoFactorAuthentication, login)
   .post('/logout', logout)
-  .post('/verify-token', validators.verifyToken, updateTokens)
+  .post('/verify-token', checkCookieToken, verifyCookieToken, updateTokens)
 
-  .post('/forgot-password', validators.forgotPassword, forgotPassword)
+  .post('/forgot-password', validateBody(forgotPasswordSchema), forgotPassword)
   .post('/forgot-password/:token', verifyForgotPasswordToken)
-  .patch('/forgot-password', validators.updatePassword, updatePassword);
+  .patch(
+    '/forgot-password',
+    validateBody(updatePasswordSchema),
+    updatePassword
+  );

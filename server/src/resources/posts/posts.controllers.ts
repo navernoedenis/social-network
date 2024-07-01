@@ -9,7 +9,7 @@ import { commentsService } from '@/resources/comments';
 import { likesService } from '@/resources/likes';
 
 import { httpStatus } from '@/utils/constants';
-import { Forbidden } from '@/utils/helpers';
+import { Forbidden, paginateQuery } from '@/utils/helpers';
 
 import { postsService } from './posts.service';
 import {
@@ -70,14 +70,17 @@ export const getPosts = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { page, limit } = req.query;
   const user = req.user!;
+
+  const { page, limit } = paginateQuery(req.query, {
+    defaultLimit: 5,
+  });
 
   try {
     const posts = await postsService.getMany({
       userId: user.id,
-      page: page ? parseInt(page) : 1,
-      limit: limit ? parseInt(limit) : 5,
+      page,
+      limit,
     });
 
     res.status(httpStatus.OK).json({

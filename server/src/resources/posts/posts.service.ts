@@ -3,6 +3,7 @@ import { db } from '@/db';
 import { type CommentLike, type PostLike } from '@/db/files/models';
 import * as entities from '@/db/files/entities';
 
+import { calcLikes } from './posts.helpers';
 import { type CreatePostDto, type Post, type PostComment } from './posts.types';
 
 class PostsService {
@@ -44,20 +45,14 @@ class PostsService {
 
     if (!post) return null;
 
-    const commentIds = post.comments.map((comment) => comment.commentId);
+    const postData = await this.getPostData({
+      comments: post.comments,
+      files: post.files,
+      userId,
+      postId: post.id,
+    });
 
-    const [comments, files, likes] = await Promise.all([
-      this.getComments(commentIds, userId),
-      this.getFiles(post.files.map((file) => file.fileId)),
-      this.getLikes(post.id, userId),
-    ]);
-
-    return {
-      ...post,
-      ...likes,
-      files,
-      comments,
-    };
+    return { ...post, ...postData };
   }
 
   async getMany(config: { page: number; limit: number; userId: number }) {
@@ -79,21 +74,14 @@ class PostsService {
 
     for (let index = 0; index < array.length; index++) {
       const post = array[index];
-
-      const commentIds = post.comments.map((comment) => comment.commentId);
-
-      const [comments, files, likes] = await Promise.all([
-        this.getComments(commentIds, userId),
-        this.getFiles(post.files.map((file) => file.fileId)),
-        this.getLikes(post.id, userId),
-      ]);
-
-      posts.push({
-        ...post,
-        ...likes,
-        files,
-        comments,
+      const postData = await this.getPostData({
+        comments: post.comments,
+        files: post.files,
+        userId,
+        postId: post.id,
       });
+
+      posts.push({ ...post, ...postData });
     }
 
     return posts;
@@ -207,6 +195,30 @@ class PostsService {
   // Todo: REMOVE HELPERS AFTER WRITING SQL
   // Todo: REMOVE HELPERS AFTER WRITING SQL
 
+  private async getPostData(data: {
+    comments: { commentId: number }[];
+    files: { fileId: number }[];
+    postId: number;
+    userId: number;
+  }) {
+    const { postId, userId } = data;
+
+    const commentIds = data.comments.map((comment) => comment.commentId);
+    const fileIds = data.files.map((file) => file.fileId);
+
+    const [comments, files, likes] = await Promise.all([
+      this.getComments(commentIds, userId),
+      this.getFiles(fileIds),
+      this.getLikes(postId, userId),
+    ]);
+
+    return {
+      ...likes,
+      comments,
+      files,
+    };
+  }
+
   private async getComments(ids: number[], userId: number) {
     const comments: PostComment[] = [];
 
@@ -225,7 +237,7 @@ class PostsService {
       },
     });
 
-    return this.calcLikes(commentLikes, userId);
+    return calcLikes(commentLikes, userId);
   }
 
   private async getCommentsRecursive(id: number, userId: number) {
@@ -278,40 +290,7 @@ class PostsService {
       },
     });
 
-    return this.calcLikes(postLikes, userId);
-  }
-
-  private calcLikes(
-    data: { userId: number; like: { value: number } }[],
-    userId: number
-  ) {
-    let likes = 0;
-    let dislikes = 0;
-    let isLiked = false;
-    let isDisliked = false;
-
-    for (const item of data) {
-      const isLike = item.like.value === 1;
-      const isDislike = item.like.value === -1;
-      const isMyLike = item.userId === userId;
-
-      if (isLike) {
-        likes += 1;
-        isMyLike && (isLiked = true);
-      }
-
-      if (isDislike) {
-        dislikes += 1;
-        isMyLike && (isDisliked = true);
-      }
-    }
-
-    return {
-      likes,
-      dislikes,
-      isLiked,
-      isDisliked,
-    };
+    return calcLikes(postLikes, userId);
   }
 }
 

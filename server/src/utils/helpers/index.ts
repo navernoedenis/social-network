@@ -5,10 +5,11 @@ export * from './security/otp-password';
 export * from './security/secure-cookie';
 export * from './security/tokens';
 
-export * from './errors/error-message';
-export * from './errors/http-error';
+export * from './transform/capitalize';
+export * from './transform/convert-to-bytes';
+export * from './transform/error-message';
+export * from './transform/paginate-query';
 
-export * from './capitalize';
-export * from './convert';
 export * from './create-link';
 export * from './date';
+export * from './http-error';

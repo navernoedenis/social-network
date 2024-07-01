@@ -13,15 +13,13 @@ import {
 
 export const verificationsRouter = Router();
 
-const validators = {
-  newEmailVerification: [
+verificationsRouter
+  .post(
+    '/email/new',
     isAuthorized,
     checkIsEmailVerified,
     checkIsEmailVerificationExists,
     validateBody(newEmailVerificationSchema),
-  ],
-};
-
-verificationsRouter
-  .post('/email/new', validators.newEmailVerification, newEmailVerification)
+    newEmailVerification
+  )
   .get('/email/:token', verifyEmailToken);
