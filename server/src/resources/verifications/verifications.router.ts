@@ -1,8 +1,7 @@
 import { Router } from 'express';
-import { isAuthorized, validateBody } from '@/utils/middlewares';
-import { newEmailVerificationSchema } from './verifications.schemas';
+import { isAuthorized } from '@/utils/middlewares';
 import {
-  newEmailVerification,
+  createEmailVerification,
   verifyEmailToken,
 } from './verifications.controllers';
 
@@ -15,11 +14,10 @@ export const verificationsRouter = Router();
 
 verificationsRouter
   .post(
-    '/email/new',
+    '/email',
     isAuthorized,
     checkIsEmailVerified,
     checkIsEmailVerificationExists,
-    validateBody(newEmailVerificationSchema),
-    newEmailVerification
+    createEmailVerification
   )
   .get('/email/:token', verifyEmailToken);

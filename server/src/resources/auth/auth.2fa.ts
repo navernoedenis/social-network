@@ -31,7 +31,7 @@ import { type LoginDto, type LoginTwoFaDto } from './auth.types';
 // 5. we check security 2FA-cookie (with userId): +
 
 // 6. if no 2FA-cookie and user has 2FA-verification in db:
-// 7. Check vericaiton expiredAt: if epxired, remove from db.... send unauthorized response +
+// 7. Check vericaiton expiredAt: if expired, remove from db.... send unauthorized response +
 // 8. if no 2FA-cookie and no 2FA-verification in db: +
 // 9. we create 2FA-verification, 2FA-payload and otp-password, +
 // 10. we add 2FA-payload to db and send email/sms with otp-password +

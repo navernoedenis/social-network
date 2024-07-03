@@ -1,4 +1,4 @@
-import { and, eq, ne, getTableColumns } from 'drizzle-orm';
+import { and, eq, ne, getTableColumns, SQL } from 'drizzle-orm';
 import { db } from '@/db';
 import { getExpiredAt } from '@/utils/helpers';
 import { type Request } from '@/types/main';
@@ -23,8 +23,9 @@ class SessionsTokensService {
     });
   }
 
-  async getMany(userId: number, addTokenColumn = false) {
+  async getMany(userId: number, config: { addTokenColumn?: boolean } = {}) {
     const { token, ...columns } = getTableColumns(entities.sessionTokens);
+    const { addTokenColumn = false } = config;
 
     return db
       .select({ ...columns, ...(addTokenColumn && { token }) })
@@ -32,14 +33,24 @@ class SessionsTokensService {
       .where(eq(entities.sessionTokens.userId, userId));
   }
 
-  async revokeOne(tokenId: string, userId: number) {
-    const tokenIds = and(
-      eq(entities.sessionTokens.id, tokenId),
-      eq(entities.sessionTokens.userId, userId)
-    );
+  async revokeOne(
+    params:
+      | { userId: number; tokenId: string; token?: never }
+      | { userId: number; tokenId?: never; token: string }
+  ) {
+    const clauses: SQL[] = [eq(entities.sessionTokens.userId, params.userId)];
 
+    if (params.token) {
+      clauses.push(eq(entities.sessionTokens.token, params.token));
+    }
+
+    if (params.tokenId) {
+      clauses.push(eq(entities.sessionTokens.id, params.tokenId));
+    }
+
+    const tokenQuery = and(...clauses);
     const token = await db.query.sessionTokens.findFirst({
-      where: tokenIds,
+      where: tokenQuery,
     });
 
     if (!token) {
@@ -48,7 +59,7 @@ class SessionsTokensService {
 
     const [revokedToken] = await db
       .delete(entities.sessionTokens)
-      .where(tokenIds)
+      .where(tokenQuery)
       .returning();
 
     return revokedToken;

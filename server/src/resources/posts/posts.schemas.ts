@@ -15,13 +15,16 @@ export const createPostSchema = z.object({
   ),
 });
 
-export const createCommentSchema = z.object({
-  parentId: z.number().nullable(),
-  message: z.string().trim().min(1, 'At least one symbol'),
-});
-
 export const createLikeSchema = z.object({
   value: z.enum(['1', '-1']).transform((v) => parseInt(v)),
+});
+
+export const createCommentSchema = z.object({
+  parentId: z.number().nullable(),
+  message: z
+    .string()
+    .trim()
+    .min(1, 'Message must contain at least 1 character(s)'),
 });
 
 export const updateCommentSchema = z.object({

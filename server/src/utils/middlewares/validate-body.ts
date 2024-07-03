@@ -15,12 +15,15 @@ export const validateBody = (schema: ZodSchema) => {
       const result = await schema.safeParseAsync(req.body);
 
       if (result.error) {
-        const { path, message } = result.error.errors[0];
+        const { message, path } = result.error.errors[0];
 
-        const field = capitalize(`${path[0]}`);
-        const error = message.toLowerCase();
+        let errorMessage = message;
+        if (message === 'Required') {
+          const field = capitalize(`${path[0]}`);
+          errorMessage = `${field} is required`;
+        }
 
-        throw new BadRequest(`${field} is ${error}`);
+        throw new BadRequest(errorMessage);
       }
 
       req.body = result.data;

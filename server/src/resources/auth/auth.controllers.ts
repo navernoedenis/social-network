@@ -104,8 +104,8 @@ export const login = async (
       return (
         res
           .status(httpStatus.BAD_REQUEST)
-          // If user has 2FA-authentication and passwords
-          // do not match, we have to remove 2FA-cookie,
+          // If user has 2FA-authentication and
+          // passwords do not match, we have to remove 2FA-cookie,
           // and they have to repeat all steps from beginning.
           .clearCookie(authCookie.twoFA)
           .json({
@@ -203,10 +203,16 @@ export const updateTokens = async (
       }
     );
 
-    await sessionsTokensService.createOne(req, {
-      userId: user.id,
-      token: newTokens.refreshToken,
-    });
+    await Promise.all([
+      sessionsTokensService.revokeOne({
+        token: refreshToken,
+        userId: user.id,
+      }),
+      sessionsTokensService.createOne(req, {
+        userId: user.id,
+        token: newTokens.refreshToken,
+      }),
+    ]);
 
     res
       .status(httpStatus.OK)

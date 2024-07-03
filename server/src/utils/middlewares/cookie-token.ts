@@ -61,7 +61,10 @@ export const verifyCookieToken = async (
       throw new Error('Invalid refresh token');
     }
 
-    const sessionTokens = await sessionsTokensService.getMany(user.id);
+    const sessionTokens = await sessionsTokensService.getMany(user.id, {
+      addTokenColumn: true,
+    });
+
     const isSessionTokenExists = sessionTokens.find(
       (sessionToken) => sessionToken.token === refreshToken
     );

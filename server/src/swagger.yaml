@@ -8,16 +8,30 @@ info:
 tags:
   - name: Auth
     description: access to social network
-  - name: Files
-    description: upload and delete files
-  - name: Session tokens
-    description: manage your's session tokens
-  - name: Profile
-    description: profile settings
-  - name: Users
-    description: users data
+
   - name: Verification
     description: social network verification
+
+  - name: Bookmarks
+    description: create and delete bookmarks
+
+  - name: Files
+    description: upload and delete files
+
+  - name: Posts
+    description: create, read, update and delete posts
+
+  - name: Profile
+    description: profile settings
+
+  - name: Session tokens
+    description: manage your's session tokens
+
+  - name: Users
+    description: users data
+
+  - name: Test
+    description: test if server works
 
 paths:
   /auth/login:
@@ -55,7 +69,7 @@ paths:
                     properties:
                       error:
                         type: string
-                        example: Body can't be empty
+                        example: Password is required
         '401':
           description: Forbidden to login
           content:
@@ -128,7 +142,7 @@ paths:
                         example: Email is already taken
 
   /auth/logout:
-    post:
+    get:
       tags:
         - Auth
       summary: logout user
@@ -147,10 +161,11 @@ paths:
                         example: Logout successfully
 
   /auth/verify-refresh:
-    post:
+    get:
       tags:
         - Auth
       summary: verify refresh token
+
       responses:
         '200':
           description: token was verified and a new pair of tokens was given
@@ -260,47 +275,9 @@ paths:
                         example:
                           You have already created a forgot password verification.
                           Follow the link which was send on your email
-    patch:
-      tags:
-        - Auth
-      summary: update password
-      parameters:
-        - in: cookie
-          name: forgot-password-token
-          type: integer
-          example: 3&263294f3d50849d7608bb57d56f9777a6beed309c7d78723cd24088fe51a5a8aff;
-
-      responses:
-        '200':
-          description: password was update
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/replies/ok'
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        example: null
-                      message:
-                        type: text
-                        example: Your password has been updated🤘
-        '400':
-          description: No password token
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/replies/error'
-                  - type: object
-                    properties:
-                      error:
-                        type: text
-                        example: No forgot password token
 
   /auth/forgot-password/{token}:
-    post:
+    get:
       tags:
         - Auth
       summary: validate forgot password token
@@ -340,6 +317,224 @@ paths:
                       error:
                         type: text
                         example: Invalid forgot password token"
+
+  /auth/update-password:
+    patch:
+      tags:
+        - Auth
+      summary: update password
+      parameters:
+        - in: cookie
+          name: forgot-password-token
+          type: integer
+          example: 3&263294f3d50849d7608bb57d56f9777a6beed309c7d78723cd24088fe51a5a8aff;
+
+      responses:
+        '200':
+          description: password was update
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        example: null
+                      message:
+                        type: text
+                        example: Your password has been updated🤘
+        '400':
+          description: No password token
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - type: object
+                    properties:
+                      error:
+                        type: text
+                        example: No forgot password token
+
+  /verifications/email:
+    post:
+      tags:
+        - Verification
+      security:
+        - bearerToken: []
+      summary: new email verification link
+      responses:
+        '200':
+          description: send another verification link if previous one has expired
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - properties:
+                      data:
+                        type: object
+                        example: null
+                      message:
+                        type: string
+                        example: A new verify link has been created and send on your email! ✅
+        '400':
+          description: account already verified
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - properties:
+                      error:
+                        type: string
+                        example: You can't create a new token, because the current one hasn't expired yet
+        '401':
+          description: invalid or no token
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - properties:
+                      statusCode:
+                        type: number
+                        example: 401
+                      error:
+                        type: object
+                        example: No bearer token
+        '409':
+          description: account can't be verified twice
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - properties:
+                      statusCode:
+                        type: number
+                        example: 409
+                      error:
+                        type: string
+                        example: Your email is already verified
+
+  /verifications/email/{token}:
+    get:
+      tags:
+        - Verification
+      summary: verify email address
+      parameters:
+        - in: path
+          name: token
+          schema:
+            type: string
+          required: true
+
+      responses:
+        '200':
+          description: verification by email address
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - properties:
+                      data:
+                        type: object
+                        example: null
+                      message:
+                        type: object
+                        example: Your email address has been verified! 👍
+        '400':
+          description: Invalid token
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - properties:
+                      error:
+                        type: object
+                        example: Invalid token
+
+  /api/v1/bookmarks:
+    get:
+      tags:
+        - Bookmarks
+      security:
+        - bearerToken: []
+      summary: get my bookmarks
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          description: the page number
+
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          description: the numbers of items to return
+
+      responses:
+        '200':
+          description: get my bookmarks
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/post'
+                      message:
+                        type: text
+                        example: Here is your bookmarks 🫑
+
+    post:
+      tags:
+        - Bookmarks
+      security:
+        - bearerToken: []
+      summary: create bookmark
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                entity:
+                  type: string
+                  example: post
+                  enum: [post]
+
+                entityId:
+                  type: number
+                  example: 1
+
+      responses:
+        '200':
+          description: comment was created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      data:
+                        type: null
+                        example: null
+                      message:
+                        type: string
+                        example: You have added entity to yours bookmarks 🥑
 
   /api/v1/files:
     post:
@@ -383,7 +578,7 @@ paths:
                     properties:
                       error:
                         type: string
-                        example: Every file must contain the same mimetime
+                        example: You have not attached the file(s)
 
     delete:
       tags:
@@ -433,8 +628,349 @@ paths:
                         type: string
                         example: Invalid ids or no files to remove 🫷
 
-  /api/v1/profiles/me:
+  /api/v1/posts:
+    get:
+      tags:
+        - Posts
+      security:
+        - bearerToken: []
+      summary: get posts
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          description: the page number
+
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          description: the numbers of items to return
+
+      responses:
+        '200':
+          description: get posts
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/post'
+                      message:
+                        type: text
+                        example: Here is your posts 🌽🌽
+    post:
+      tags:
+        - Posts
+      security:
+        - bearerToken: []
+      summary: create post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/forms/post'
+
+      responses:
+        '200':
+          description: post created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/post'
+                      message:
+                        type: text
+                        example: Post has been created ✉️
+
+  /api/v1/posts/{id}:
+    get:
+      tags:
+        - Posts
+      security:
+        - bearerToken: []
+      summary: get post by id
+
+      responses:
+        '200':
+          description: get post
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/post'
+                      message:
+                        type: text
+                        example: Here is your post 🌽
+
+        '404':
+          description: post hasn't been found
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - type: object
+                    properties:
+                      statusCode:
+                        type: number
+                        example: 404
+                      error:
+                        type: string
+                        example: Post doesn't exist
+
+  /api/v1/posts/{id}/like:
     patch:
+      tags:
+        - Posts
+      security:
+        - bearerToken: []
+      summary: like post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                value:
+                  type: string
+                  example: 1
+                  enum: [1, -1]
+
+      responses:
+        '200':
+          description: like post
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      data:
+                        type: [boolean, null]
+                        example: true
+                      message:
+                        type: text
+                        example: The post has been liked 🧢
+
+        '404':
+          description: post hasn't been found
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - type: object
+                    properties:
+                      statusCode:
+                        type: number
+                        example: 404
+                      error:
+                        type: string
+                        example: Post doesn't exist
+
+  /api/v1/posts/{id}/comments:
+    post:
+      tags:
+        - Posts
+      security:
+        - bearerToken: []
+      summary: create comment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/forms/comment'
+
+      responses:
+        '200':
+          description: comment was created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/comment'
+                      message:
+                        type: string
+                        example: You have commented the post 🥣
+        '400':
+          description: this username is already taken by someone
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - type: object
+                    properties:
+                      error:
+                        type: string
+                        example: Message must contain at least 1 character(s)
+
+  /api/v1/posts/{id}/comments/{cid}:
+    put:
+      tags:
+        - Posts
+      security:
+        - bearerToken: []
+      summary: update comment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: updated message
+
+      responses:
+        '200':
+          description: comment successfully updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      data:
+                        type: boolean
+                        example: true
+                      message:
+                        type: string
+                        example: Your comment has been updated 📎
+        '404':
+          description: this username is already taken by someone
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - type: object
+                    properties:
+                      statusCode:
+                        type: number
+                        example: 404
+                      error:
+                        type: string
+                        example: Comment doesn't exist
+
+    delete:
+      tags:
+        - Posts
+      security:
+        - bearerToken: []
+      summary: delete comment
+      responses:
+        '200':
+          description: comment successfully deleted
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      data:
+                        type: boolean
+                        example: true
+                      message:
+                        type: string
+                        example: Your comment has been updated 📎
+
+        '404':
+          description: comment not found
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - type: object
+                    properties:
+                      statusCode:
+                        type: number
+                        example: 404
+                      error:
+                        type: string
+                        example: Comment doesn't exist
+
+  /api/v1/posts/{id}/comments/{cid}/like:
+    patch:
+      tags:
+        - Posts
+      security:
+        - bearerToken: []
+      summary: like post comment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                value:
+                  type: string
+                  example: 1
+                  enum: [1, -1]
+
+      responses:
+        '200':
+          description: like post
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      data:
+                        type: [boolean, null]
+                        example: true
+                      message:
+                        type: text
+                        example: The comment has been liked 🍀
+
+        '404':
+          description: post hasn't been found
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - type: object
+                    properties:
+                      statusCode:
+                        type: number
+                        example: 404
+                      error:
+                        type: string
+                        example: Comment doesn't exist
+
+  /api/v1/profiles/me:
+    put:
       tags:
         - Profile
       security:
@@ -477,7 +1013,7 @@ paths:
                         example: Username is already taken. Create another one 🥝
 
   /api/v1/profiles/phone:
-    put:
+    patch:
       tags:
         - Profile
       security:
@@ -571,7 +1107,7 @@ paths:
                         example: Passwords do not match
 
   /api/v1/profiles/password:
-    put:
+    patch:
       tags:
         - Profile
       security:
@@ -654,43 +1190,6 @@ paths:
                         type: string
                         example: Invalid or no token
 
-  /api/v1/session-tokens/{id}:
-    delete:
-      tags:
-        - Session tokens
-      security:
-        - bearerToken: []
-      summary: revoke session token
-      responses:
-        '200':
-          description: revoke token
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/replies/ok'
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        example: null
-                      message:
-                        type: text
-                        example: You token has been revoked!
-
-        '400':
-          description: token doesn't exists
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/replies/error'
-                  - type: object
-                    properties:
-                      error:
-                        type: string
-                        example: Token doesn't exists
-
   /api/v1/session-tokens/all:
     delete:
       tags:
@@ -727,6 +1226,43 @@ paths:
                         error:
                           type: string
                           example: No bearer token
+
+  /api/v1/session-tokens/{id}:
+    delete:
+      tags:
+        - Session tokens
+      security:
+        - bearerToken: []
+      summary: revoke session token
+      responses:
+        '200':
+          description: revoke token
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        example: null
+                      message:
+                        type: text
+                        example: You token has been revoked!
+
+        '400':
+          description: token doesn't exists
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - type: object
+                    properties:
+                      error:
+                        type: string
+                        example: Token doesn't exists
 
   /api/v1/users/me:
     delete:
@@ -765,106 +1301,28 @@ paths:
                         type: text
                         example: You have already removed youself 🤗
 
-  /verifications/email/new:
-    post:
-      tags:
-        - Verification
-      security:
-        - bearerToken: []
-      summary: new verification email link
-      responses:
-        '200':
-          description: send another verification link if previous one has expired
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/replies/ok'
-                  - properties:
-                      data:
-                        type: object
-                        example: null
-                      message:
-                        type: string
-                        example: A new verify link has been created and send on your email! ✅
-        '400':
-          description: account already verified
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/replies/error'
-                  - properties:
-                      error:
-                        type: string
-                        example: You can't create a new token, because the current one hasn't expired yet
-        '401':
-          description: invalid or no token
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/replies/error'
-                  - properties:
-                      statusCode:
-                        type: number
-                        example: 401
-                      error:
-                        type: object
-                        example: No bearer token
-        '409':
-          description: account can't be verified twice
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/replies/error'
-                  - properties:
-                      statusCode:
-                        type: number
-                        example: 409
-                      error:
-                        type: string
-                        example: Your email is already verified
-
-  /verifications/email/{token}:
+  /test:
     get:
       tags:
-        - Verification
-      summary: verify user email
-      parameters:
-        - in: path
-          name: token
-          schema:
-            type: string
-          required: true
+        - Test
+      summary: test server work
 
       responses:
         '200':
-          description: verification by email address
+          description: server works
           content:
             application/json:
               schema:
                 allOf:
                   - $ref: '#/components/replies/ok'
-                  - properties:
+                  - type: object
+                    properties:
                       data:
                         type: object
                         example: null
                       message:
-                        type: object
-                        example: Your email address has been verified! 👍
-        '400':
-          description: Invalid token
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/replies/error'
-                  - properties:
-                      error:
-                        type: object
-                        example: Invalid token
+                        type: text
+                        example: Test works! :)
 
 components:
   securitySchemes:
@@ -874,28 +1332,108 @@ components:
       bearerFormat: JWT
 
   schemas:
+    comment:
+      type: object
+      properties:
+        id:
+          type: number
+          example: true
+        parentId:
+          type: number
+          nullable: true
+          example: 1
+        message:
+          type: string
+          example: my first comment
+        createdAt:
+          type: date
+          example: 2024-06-05T15:02:57.345Z
+        updatedAt:
+          type: date
+          example: 2024-06-05T15:02:57.345Z
+        user:
+          $ref: '#/components/schemas/user'
+        comments:
+          type: array
+        likes:
+          type: number
+          example: 5
+        dislikes:
+          type: number
+          example: 2
+        isLiked:
+          type: boolean
+          example: false
+        isDisliked:
+          type: boolean
+          example: true
+
     file:
       type: object
       properties:
         id:
           type: string
           example: eb38fb08-003f-4ebc-844d-704708eb694b
+
         userId:
           type: number
           example: 1
+
         bucketKey:
           type: string
           example: audios/2ebb5b4fb9819436d8d13b63f3c0322e7a36b9b38711c4ef84149123ef2343d5.mp3
+
         name:
           type: string
           example: Erika - I don't know
+
         url:
           type: string
           example: https://social-network-files.s3.us-east-1.amazonaws.com/audios/2ebb5b4fb9819436d8d13b63f3c0322e7a36b9b38711c4ef84149123ef2343d5.mp3
+
         type:
           type: string
           example: audio
           enum: [audio, image, video]
+
+    post:
+      type: object
+      properties:
+        id:
+          type: number
+          example: 1
+        userId:
+          type: number
+          example: 1
+        body:
+          type: string
+          example: my first post!
+        createdAt:
+          type: date
+          example: 2024-06-05T15:02:57.345Z
+        updatedAt:
+          type: date
+          example: 2024-06-05T15:02:57.345Z
+        user:
+          $ref: '#/components/schemas/user'
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/file'
+        comments:
+          type: array
+        likes:
+          type: number
+          example: 3
+        dislikes:
+          type: number
+          example: 0
+        isLiked:
+          type: boolean
+          example: true
+        isDisliked:
+          type: boolean
+          example: false
 
     profile:
       type: object
@@ -903,27 +1441,35 @@ components:
         id:
           type: string
           example: a9364570-c50d-4298-90f1-f36325a13471
+
         userId:
           type: number
           example: 1
+
         about:
           type: string
           example: aglet lover, grad 🧩
+
         birthday:
           type: [date, null]
           example: 2024-06-05T15:02:57.345Z
+
         isActive:
           type: boolean
           example: true
+
         isOfficial:
           type: boolean
           example: false
+
         isVerified:
           type: boolean
           example: true
+
         createdAt:
           type: date
           example: 2024-06-05T15:02:57.345Z
+
         updatedAt:
           type: date
           example: 2024-06-05T15:02:57.345Z
@@ -973,7 +1519,7 @@ components:
           example: Bailey
         role:
           type: string
-          example: Admin
+          example: user
 
     user_and_profile:
       allOf:
@@ -983,6 +1529,19 @@ components:
               $ref: '#/components/schemas/profile'
 
   forms:
+    comment:
+      type: object
+      properties:
+        parentId:
+          type: number
+          example: 1
+          nullable: true
+          required: true
+        message:
+          type: string
+          example: my first comment
+          required: true
+
     login:
       type: object
       properties:
@@ -995,6 +1554,18 @@ components:
         rememberMe:
           type: boolean
           example: true
+
+    post:
+      type: object
+      properties:
+        body:
+          type: string
+          example: my fist post
+          required: true
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/file'
 
     signup:
       type: object

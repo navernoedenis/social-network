@@ -19,7 +19,7 @@ import { isUsernameTaken } from './profiles.middlewares';
 export const profilesRouter = Router();
 
 profilesRouter
-  .patch('/me', validateBody(updateDataSchema), isUsernameTaken, updateData)
-  .put('/phone', validateBody(updatePhoneSchema), updatePhone)
+  .put('/me', validateBody(updateDataSchema), isUsernameTaken, updateData)
+  .patch('/phone', validateBody(updatePhoneSchema), updatePhone)
   .post('/phone/confirm', validateBody(confirmPhoneSchema), confirmPhone)
-  .put('/password', validateBody(updatePasswordSchema), updatePassword);
+  .patch('/password', validateBody(updatePasswordSchema), updatePassword);

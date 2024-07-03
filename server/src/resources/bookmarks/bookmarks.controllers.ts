@@ -8,12 +8,12 @@ import {
 import { postsService } from '@/resources/posts';
 
 import { httpStatus } from '@/utils/constants';
-import { NotFound, paginateQuery } from '@/utils/helpers';
+import { paginateQuery } from '@/utils/helpers';
 
 import { bookmarksService } from './bookmarks.service';
-import { type BookmarkDto } from './bookmarks.types';
+import { type BookmarkData, type BookmarkDto } from './bookmarks.types';
 
-export const createBookmark = async (
+export const toggleBookmark = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -22,17 +22,28 @@ export const createBookmark = async (
   const dto = req.body as BookmarkDto;
 
   try {
-    const bookmark = await bookmarksService.createOne({
+    const bookmarkData: BookmarkData = {
       entity: dto.entity,
       entityId: dto.entityId,
       userId: user.id,
-    });
+    };
+
+    const bookmark = await bookmarksService.getOne(bookmarkData);
+    let message = '';
+
+    if (bookmark) {
+      await bookmarksService.deleteOne(bookmarkData);
+      message = `You have removed ${dto.entity} from yours bookmarks 🫛`;
+    } else {
+      await bookmarksService.createOne(bookmarkData);
+      message = `You have added ${dto.entity} to yours bookmarks 🥑`;
+    }
 
     res.status(httpStatus.OK).json({
       success: true,
       statusCode: httpStatus.OK,
-      data: bookmark,
-      message: 'You have added entity to yours bookmarks 🥑',
+      data: !bookmark,
+      message,
     } as HttpResponse);
   } catch (error) {
     next(error);
@@ -72,36 +83,6 @@ export const getBookmarks = async (
       statusCode: httpStatus.OK,
       data: bookmarksData,
       message: 'Here is your bookmarks 🫑',
-    } as HttpResponse);
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const deleteBookmark = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const user = req.user!;
-  const dto = req.body as BookmarkDto;
-
-  try {
-    const bookmark = await bookmarksService.deleteOne({
-      entity: dto.entity,
-      entityId: dto.entityId,
-      userId: user.id,
-    });
-
-    if (!bookmark) {
-      throw new NotFound("Bookmark doesn't exist");
-    }
-
-    res.status(httpStatus.OK).json({
-      success: true,
-      statusCode: httpStatus.OK,
-      data: bookmark,
-      message: 'You have removed your bookmark 🪔',
     } as HttpResponse);
   } catch (error) {
     next(error);

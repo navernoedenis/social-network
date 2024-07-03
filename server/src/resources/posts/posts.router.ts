@@ -3,9 +3,9 @@ import { validateBody } from '@/utils/middlewares';
 import {
   createComment,
   createPost,
+  deleteComment,
   getPost,
   getPosts,
-  removeComment,
   toggleCommentLike,
   togglePostLike,
   updateComment,
@@ -48,7 +48,7 @@ postsRouter
     checkCommentUpdate,
     updateComment
   )
-  .delete('/:id/comments/:cid', hasComment, removeComment)
+  .delete('/:id/comments/:cid', hasComment, deleteComment)
   .patch(
     '/:id/comments/:cid/like',
     validateBody(createLikeSchema),

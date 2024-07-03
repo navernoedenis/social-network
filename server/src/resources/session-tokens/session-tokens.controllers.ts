@@ -39,10 +39,10 @@ export const revokeSessionToken = async (
   const user = req.user!;
 
   try {
-    const revokedToken = await sessionsTokensService.revokeOne(
+    const revokedToken = await sessionsTokensService.revokeOne({
       tokenId,
-      user.id
-    );
+      userId: user.id,
+    });
     if (!revokedToken) {
       throw new BadRequest("Token doesn't exists");
     }

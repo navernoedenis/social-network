@@ -16,6 +16,7 @@ import {
   type CreateCommentDto,
   type CreateLikeDto,
   type CreatePostDto,
+  type PostComment,
   type UpdateCommentDto,
 } from './posts.types';
 
@@ -158,11 +159,19 @@ export const createComment = async (
     if (!dto.parentId) {
       await postsService.createComment(postId, comment.id);
     }
+    const newComment: PostComment = {
+      ...comment,
+      likes: 0,
+      dislikes: 0,
+      isLiked: false,
+      isDisliked: false,
+      comments: [],
+    };
 
     res.status(httpStatus.OK).json({
       success: true,
       statusCode: httpStatus.OK,
-      data: comment,
+      data: newComment,
       message: 'You have commented the post 🥣',
     } as HttpResponse);
   } catch (error) {
@@ -179,15 +188,12 @@ export const updateComment = async (
   const dto = req.body as UpdateCommentDto;
 
   try {
-    const updatedComment = await commentsService.updateOne(
-      commentId,
-      dto.message
-    );
+    await commentsService.updateOne(commentId, dto.message);
 
     res.status(httpStatus.OK).json({
       success: true,
       statusCode: httpStatus.OK,
-      data: updatedComment,
+      data: true,
       message: 'Your comment has been updated 📎',
     } as HttpResponse);
   } catch (error) {
@@ -195,7 +201,7 @@ export const updateComment = async (
   }
 };
 
-export const removeComment = async (
+export const deleteComment = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -212,12 +218,12 @@ export const removeComment = async (
       throw new Forbidden('You are not an author of this comment 👀');
     }
 
-    const removedComment = await commentsService.deleteOne(commentId);
+    await commentsService.deleteOne(commentId);
 
     res.status(httpStatus.OK).json({
       success: true,
       statusCode: httpStatus.OK,
-      data: removedComment ?? null,
+      data: true,
       message: 'Your comment has been removed 🚸',
     } as HttpResponse);
   } catch (error) {

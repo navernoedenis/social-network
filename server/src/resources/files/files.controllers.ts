@@ -37,7 +37,7 @@ export const uploadFiles = async (
 
     const mediaFiles = files['files'] ?? [];
     if (!mediaFiles.length) {
-      throw new BadRequest('You have no files');
+      throw new BadRequest('You have not attached the file(s)');
     }
 
     const maxQuantityError = checkMaxQuantity(mediaType, mediaFiles);

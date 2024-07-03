@@ -5,13 +5,16 @@ import {
   type HttpResponse,
 } from '@/types/main';
 
-import { httpStatus } from '@/utils/constants';
-import { BadRequest, createToken } from '@/utils/helpers';
-
 import { profilesService } from '@/resources/profiles';
+
+import { BadRequest, createToken } from '@/utils/helpers';
+import { createLink } from '@/utils/helpers';
+import { emailService } from '@/utils/services';
+import { httpStatus } from '@/utils/constants';
+
 import { verificationsService } from './verifications.service';
 
-export const newEmailVerification = async (
+export const createEmailVerification = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -19,10 +22,20 @@ export const newEmailVerification = async (
   const user = req.user!;
 
   try {
-    await verificationsService.createEmailVerification({
-      userId: user.id,
-      payload: createToken(),
+    const token = createToken();
+    const link = createLink(req, {
+      path: `/verifications/email/${token}`,
     });
+
+    await Promise.all([
+      verificationsService.createEmailVerification({
+        userId: user.id,
+        payload: token,
+      }),
+      emailService.sendEmail({
+        text: `Please, verify your email by following this link: 👉 ${link} `,
+      }),
+    ]);
 
     res.status(httpStatus.OK).json({
       success: true,

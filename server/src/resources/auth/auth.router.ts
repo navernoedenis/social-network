@@ -28,13 +28,13 @@ export const authRouter = Router();
 authRouter
   .post('/signup', validateBody(signUpSchema), signup)
   .post('/login', validateBody(loginSchema), twoFactorAuthentication, login)
-  .post('/logout', logout)
-  .post('/verify-token', checkCookieToken, verifyCookieToken, updateTokens)
+  .get('/logout', logout)
+  .get('/verify-refresh', checkCookieToken, verifyCookieToken, updateTokens)
 
   .post('/forgot-password', validateBody(forgotPasswordSchema), forgotPassword)
-  .post('/forgot-password/:token', verifyForgotPasswordToken)
+  .get('/forgot-password/:token', verifyForgotPasswordToken)
   .patch(
-    '/forgot-password',
+    '/update-password',
     validateBody(updatePasswordSchema),
     updatePassword
   );
