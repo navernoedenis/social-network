@@ -71,11 +71,11 @@ export const getPosts = async (
   res: Response,
   next: NextFunction
 ) => {
-  const user = req.user!;
-
   const { page, limit } = paginateQuery(req.query, {
     defaultLimit: 5,
   });
+
+  const user = req.user!;
 
   try {
     const posts = await postsService.getMany({

@@ -55,11 +55,11 @@ export const getBookmarks = async (
   res: Response,
   next: NextFunction
 ) => {
-  const user = req.user!;
-
   const { page, limit } = paginateQuery(req.query, {
     defaultLimit: 3,
   });
+
+  const user = req.user!;
 
   try {
     const bookmarks = await bookmarksService.getMany({

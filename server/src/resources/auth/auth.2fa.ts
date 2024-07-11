@@ -5,7 +5,7 @@ import {
   type Response,
 } from '@/types/main';
 
-import { emailService } from '@/utils/services';
+import { phoneService } from '@/utils/services';
 import { usersService } from '@/resources/users';
 import { verificationsService } from '@/resources/verifications';
 
@@ -39,7 +39,7 @@ import { type LoginDto, type LoginTwoFaDto } from './auth.types';
 // 12. (client part): redirect user on otp-password page, they text password and press next-button +
 // 13. (client part): again send request on login enpoint with otp-password in req.body +
 
-// middleware check us again:
+// middleware checks us again:
 // 14. we have 2FA-cookie and check is 2FA-verification exists in db +
 // 15. if no 2FA-verification in db: we delete 2FA-cookie and send: Unauthorized response +
 // 16. if yes and 2FA-verification expired: delete 2FA-cookie and 2FA-verifcaiton +
@@ -107,7 +107,7 @@ export const twoFactorAuthentication = async (
           payload: encryptData(twoFaPayload),
           expiredAt,
         }),
-        emailService.sendEmail({
+        phoneService.sendSms({
           text: `Your 2FA password is: ${otp}`,
         }),
       ]);

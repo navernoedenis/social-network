@@ -10,5 +10,5 @@ export const sessionTokensRouter = Router();
 
 sessionTokensRouter
   .get('/', getSessionTokens)
-  .delete('/all', checkCookieToken, revokeSessionTokens)
+  .delete('/', checkCookieToken, revokeSessionTokens)
   .delete('/:id', revokeSessionToken);

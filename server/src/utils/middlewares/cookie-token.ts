@@ -37,7 +37,7 @@ export const checkCookieToken = async (
           statusCode: httpStatus.UNAUTHORIZED,
           error:
             'Your refresh token is expired. ' +
-            'Try to login and receive new pair of tokes',
+            'Try to login and receive new pair of tokens',
         } as HttpResponse);
     }
 

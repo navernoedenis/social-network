@@ -54,9 +54,9 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   }),
 
   files: many(files),
+  friends: many(friends),
   notificatinos: many(notifications),
   posts: many(posts),
   subscriptions: many(subscriptions),
   tokens: many(sessionTokens),
-  friends: many(friends),
 }));
