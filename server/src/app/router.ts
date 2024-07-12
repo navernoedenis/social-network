@@ -16,6 +16,7 @@ import { friendsRouter } from '@/resources/friends';
 import { postsRouter } from '@/resources/posts';
 import { profilesRouter } from '@/resources/profiles';
 import { sessionTokensRouter } from '@/resources/session-tokens';
+import { subscriptionsRouter } from '@/resources/subscriptions';
 import { usersRouter } from '@/resources/users';
 import { verificationsRouter } from '@/resources/verifications';
 
@@ -39,6 +40,7 @@ router.use('/api/v1/friends', friendsRouter);
 router.use('/api/v1/posts', postsRouter);
 router.use('/api/v1/profiles', profilesRouter);
 router.use('/api/v1/session-tokens', sessionTokensRouter);
+router.use('/api/v1/subscriptions', subscriptionsRouter);
 router.use('/api/v1/users', usersRouter);
 
 router.get('/test', appHandlers.test);

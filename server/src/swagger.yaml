@@ -30,6 +30,9 @@ tags:
   - name: Session tokens
     description: manage your's session tokens
 
+  - name: Subscriptions
+    description: user subscriptions
+
   - name: Users
     description: users data
 
@@ -1531,6 +1534,76 @@ paths:
                       error:
                         type: string
                         example: Token doesn't exists
+
+  /api/v1/subscriptions/{id}:
+    post:
+      tags:
+        - Subscriptions
+      security:
+        - bearerToken: []
+      summary: create or remove a subscriptions
+      responses:
+        '200':
+          description: subscribe or unsubscribe
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      data:
+                        type: boolean
+                        example: true
+                      message:
+                        type: text
+                        example: You have subscribed to the user 🚛
+        '403':
+          description: revoke token
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - type: object
+                    properties:
+                      statusCode:
+                        type: number
+                        example: 403
+                      error:
+                        type: text
+                        example: You can not follow on yourself 🚫
+
+  /api/v1/subscriptions/{id}/count:
+    get:
+      tags:
+        - Subscriptions
+      security:
+        - bearerToken: []
+      summary: get user subscription statistic
+      responses:
+        '200':
+          description: user subscription statistic
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          subscribed:
+                            type: number
+                            example: 38
+                          subscribers:
+                            type: number
+                            example: 15
+
+                      message:
+                        type: text
+                        example: You have subscribed to the user 🚛
 
   /api/v1/users/me:
     delete:

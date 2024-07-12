@@ -40,7 +40,7 @@ export const approveFriend = async (
   const friendId = parseInt(req.params.id);
 
   try {
-    const friendship = await friendsService.getOne(friendId, user.id);
+    const friendship = await friendsService.getOne(user.id, friendId);
     if (friendship!.userId === user.id) {
       throw new Forbidden("You can't approve your friend request 🤚");
     }

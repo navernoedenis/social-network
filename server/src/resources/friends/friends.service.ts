@@ -1,11 +1,11 @@
-import { and, eq, inArray, or, count, SQL } from 'drizzle-orm';
+import { and, count, eq, inArray, or, SQL } from 'drizzle-orm';
 import { db } from '@/db';
 import * as entities from '@/db/files/entities';
 
 class FriendsService {
-  async getOne(friendId: number, myId: number) {
+  async getOne(myId: number, friendId: number) {
     return db.query.friends.findFirst({
-      where: this.friendQuery(friendId, myId),
+      where: this.friendQuery(myId, friendId),
     });
   }
 
@@ -33,7 +33,7 @@ class FriendsService {
   async deleteOne(myId: number, friendId: number) {
     const [removedFriend] = await db
       .delete(entities.friends)
-      .where(this.friendQuery(friendId, myId))
+      .where(this.friendQuery(myId, friendId))
       .returning();
 
     return removedFriend;
@@ -85,12 +85,12 @@ class FriendsService {
   private friendQuery(myId: number, friendId: number) {
     return or(
       and(
-        eq(entities.friends.userId, friendId),
-        eq(entities.friends.friendId, myId)
-      ),
-      and(
         eq(entities.friends.userId, myId),
         eq(entities.friends.friendId, friendId)
+      ),
+      and(
+        eq(entities.friends.userId, friendId),
+        eq(entities.friends.friendId, myId)
       )
     );
   }

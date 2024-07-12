@@ -1,7 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { mediaTypes } from '@/utils/constants';
-import { type MediaType } from '@/types/main';
-import { type NewFile } from './model';
+import { type MediaType, type NewFile } from './model';
 
 export const createFile = (userId: number, mediaType?: MediaType): NewFile => {
   const type = mediaType ?? faker.helpers.arrayElement(mediaTypes);

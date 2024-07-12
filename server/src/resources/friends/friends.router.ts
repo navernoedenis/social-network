@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { checkFriend, checkUser, checkUserId } from './friends.middlewares';
+import { checkUser, checkUserId } from '@/utils/middlewares';
+import { checkFriend } from './friends.middlewares';
 import {
   approveFriend,
   createFriend,

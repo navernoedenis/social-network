@@ -6,4 +6,5 @@
 export * from './auth';
 export * from './cookie-token';
 export * from './roles';
+export * from './users';
 export * from './validate-body';
