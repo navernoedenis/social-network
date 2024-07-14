@@ -1,6 +1,5 @@
 import { type Request, type Response, type NextFunction } from '@/types/main';
 import { NotFound, Forbidden } from '@/utils/helpers';
-
 import { commentsService } from '@/resources/comments';
 
 import { postsService } from './posts.service';
@@ -11,11 +10,11 @@ export const hasPost = async (
   res: Response,
   next: NextFunction
 ) => {
+  const me = req.user!;
   const postId = parseInt(req.params.id);
-  const user = req.user!;
 
   try {
-    const post = await postsService.getOne(postId, user.id);
+    const post = await postsService.getOne(postId, me.id);
     if (!post) {
       throw new NotFound("Post doesn't exist");
     }
@@ -71,12 +70,12 @@ export const checkCommentUpdate = async (
   res: Response,
   next: NextFunction
 ) => {
+  const me = req.user!;
   const commentId = parseInt(req.params.cid);
-  const user = req.user!;
 
   try {
     const comment = await commentsService.getOne(commentId);
-    if (user.id !== comment!.userId) {
+    if (me.id !== comment!.userId) {
       throw new Forbidden('You are not an author of this comment');
     }
 

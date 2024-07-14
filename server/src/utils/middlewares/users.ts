@@ -7,7 +7,7 @@ export const checkUserId = async (
   res: Response,
   next: NextFunction
 ) => {
-  const user = req.user!;
+  const me = req.user!;
   const userId = parseInt(req.params.id);
 
   try {
@@ -15,7 +15,7 @@ export const checkUserId = async (
       throw new BadRequest('Invalid user id ⛔');
     }
 
-    if (userId === user.id) {
+    if (userId === me.id) {
       throw new Forbidden('You can not follow on yourself 🚫');
     }
 
@@ -33,7 +33,7 @@ export const checkUser = async (
   const userId = parseInt(req.params.id);
 
   try {
-    const user = await usersService.findById(userId);
+    const user = await usersService.getById(userId);
     if (!user) {
       throw new NotFound('User does not exist 🔍');
     }

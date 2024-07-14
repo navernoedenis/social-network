@@ -15,6 +15,9 @@ tags:
   - name: Bookmarks
     description: create and delete bookmarks
 
+  - name: Conversations
+    description: create and delete conversations
+
   - name: Files
     description: upload and delete files
 
@@ -151,6 +154,8 @@ paths:
     get:
       tags:
         - Auth
+      security:
+        - bearerToken: []
       summary: logout user
       responses:
         '200':
@@ -541,6 +546,102 @@ paths:
                       message:
                         type: string
                         example: You have added entity to yours bookmarks 🥑
+
+  /api/v1/conversations:
+    get:
+      tags:
+        - Conversations
+      security:
+        - bearerToken: []
+      summary: get converastion list
+
+      responses:
+        '200':
+          description: get my conversations
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/conversation'
+                      message:
+                        type: text
+                        example: Here is your conversation list 🚏
+
+    post:
+      tags:
+        - Conversations
+      security:
+        - bearerToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/forms/conversation'
+      summary: create covnersation
+
+      responses:
+        '200':
+          description: conversation was created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/conversation'
+                      message:
+                        type: text
+                        example: You have created a conversation 🦴
+
+  /api/v1/conversations/{id}:
+    delete:
+      tags:
+        - Conversations
+      security:
+        - bearerToken: []
+      summary: remove converastion
+
+      responses:
+        '200':
+          description: conversation was removed
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      data:
+                        type: boolean
+                        example: true
+                      message:
+                        type: text
+                        example: You have removed a conversation 🔨
+
+        '404':
+          description: converastion doesnt exist
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - type: object
+                    properties:
+                      statusCode:
+                        type: number
+                        example: 404
+                      error:
+                        type: string
+                        example: Conversation does not exist 📬
 
   /api/v1/files:
     post:
@@ -1605,6 +1706,39 @@ paths:
                         type: text
                         example: You have subscribed to the user 🚛
 
+  /api/v1/users:
+    get:
+      tags:
+        - Users
+      security:
+        - bearerToken: []
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: search key field
+      summary: find users by fields
+
+      responses:
+        '200':
+          description: list of search users
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/user_and_profile'
+
+                      message:
+                        type: text
+                        example: Founded users 🦝
+
   /api/v1/users/me:
     delete:
       tags:
@@ -1708,6 +1842,29 @@ components:
         isDisliked:
           type: boolean
           example: true
+
+    conversation:
+      type: object
+      properties:
+        id:
+          type: number
+          example: 1
+        authorId:
+          type: number
+          example: 16
+        userId:
+          type: number
+          example: 34
+        createdAt:
+          type: date
+          example: 2024-06-05T15:02:57.345Z
+        updatedAt:
+          type: date
+          example: 2024-06-05T15:02:57.345Z
+        author:
+          $ref: '#/components/schemas/user_and_profile'
+        user:
+          $ref: '#/components/schemas/user_and_profile'
 
     file:
       type: object
@@ -1881,6 +2038,15 @@ components:
         message:
           type: string
           example: my first comment
+          required: true
+
+    conversation:
+      type: object
+      properties:
+        userId:
+          type: number
+          example: 1
+          nullable: false
           required: true
 
     login:

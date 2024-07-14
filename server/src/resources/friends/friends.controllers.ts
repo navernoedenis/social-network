@@ -14,11 +14,11 @@ export const createFriend = async (
   res: Response,
   next: NextFunction
 ) => {
-  const user = req.user!;
+  const me = req.user!;
   const friendId = parseInt(req.params.id);
 
   try {
-    await friendsService.createOne(user.id, friendId);
+    await friendsService.createOne(me.id, friendId);
 
     res.status(httpStatus.OK).json({
       success: true,
@@ -36,16 +36,16 @@ export const approveFriend = async (
   res: Response,
   next: NextFunction
 ) => {
-  const user = req.user!;
+  const me = req.user!;
   const friendId = parseInt(req.params.id);
 
   try {
-    const friendship = await friendsService.getOne(user.id, friendId);
-    if (friendship!.userId === user.id) {
+    const friendship = await friendsService.getOne(me.id, friendId);
+    if (friendship!.userId === me.id) {
       throw new Forbidden("You can't approve your friend request 🤚");
     }
 
-    await friendsService.approveOne(user.id, friendId);
+    await friendsService.approveOne(me.id, friendId);
 
     res.status(httpStatus.OK).json({
       success: true,
@@ -59,21 +59,20 @@ export const approveFriend = async (
 };
 
 export const getFriends = async (
-  req: Request<unknown, unknown, unknown, { page: string; limit: string }>,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
+  const me = req.user!;
   const { page, limit } = paginateQuery(req.query, {
     defaultLimit: 10,
   });
 
-  const user = req.user!;
-
   try {
     const [count, friends] = await Promise.all([
-      friendsService.friendsCount(user.id),
+      friendsService.friendsCount(me.id),
       friendsService.getMany({
-        myId: user.id,
+        myId: me.id,
         page,
         limit,
       }),
@@ -95,11 +94,11 @@ export const deleteFriend = async (
   res: Response,
   next: NextFunction
 ) => {
-  const user = req.user!;
+  const me = req.user!;
   const friendId = parseInt(req.params.id);
 
   try {
-    await friendsService.deleteOne(user.id, friendId);
+    await friendsService.deleteOne(me.id, friendId);
 
     res.status(httpStatus.OK).json({
       success: true,
@@ -113,19 +112,18 @@ export const deleteFriend = async (
 };
 
 export const getRequests = async (
-  req: Request<unknown, unknown, unknown, { page: string; limit: string }>,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
+  const me = req.user!;
   const { page, limit } = paginateQuery(req.query, {
     defaultLimit: 10,
   });
 
-  const user = req.user!;
-
   try {
     const requests = await friendsService.getRequests({
-      myId: user.id,
+      myId: me.id,
       page,
       limit,
     });
@@ -142,19 +140,18 @@ export const getRequests = async (
 };
 
 export const getMyRequests = async (
-  req: Request<unknown, unknown, unknown, { page: string; limit: string }>,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
+  const me = req.user!;
   const { page, limit } = paginateQuery(req.query, {
     defaultLimit: 10,
   });
 
-  const user = req.user!;
-
   try {
     const myRequests = await friendsService.getMyRequests({
-      myId: user.id,
+      myId: me.id,
       page,
       limit,
     });

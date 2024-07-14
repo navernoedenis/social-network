@@ -9,10 +9,10 @@ export const checkIsEmailVerified = async (
   res: Response,
   next: NextFunction
 ) => {
-  const user = req.user!;
+  const me = req.user!;
 
   try {
-    const profile = await profilesService.getOne(user.id);
+    const profile = await profilesService.getOne(me.id);
     if (profile?.isEmailVerified) {
       throw new Conflict('Your email is already verified');
     }
@@ -28,11 +28,11 @@ export const checkIsEmailVerificationExists = async (
   res: Response,
   next: NextFunction
 ) => {
-  const user = req.user!;
+  const me = req.user!;
 
   try {
     const verification = await verificationsService.getEmailVerification({
-      userId: user.id,
+      userId: me.id,
     });
 
     if (verification) {

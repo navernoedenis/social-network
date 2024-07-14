@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { deleteMyAccount } from './users.controllers';
+import { deleteUser, getUsers } from './users.controllers';
 
 export const usersRouter = Router();
 
-usersRouter.delete('/me', deleteMyAccount);
+usersRouter.get('/', getUsers).delete('/me', deleteUser);

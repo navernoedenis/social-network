@@ -11,6 +11,7 @@ import { isAuthorized } from '@/utils/middlewares';
 
 import { authRouter } from '@/resources/auth';
 import { bookmarksRouter } from '@/resources/bookmarks';
+import { conversationsRouter } from '@/resources/conversations';
 import { filesRouter } from '@/resources/files';
 import { friendsRouter } from '@/resources/friends';
 import { postsRouter } from '@/resources/posts';
@@ -35,6 +36,7 @@ router.use('/verifications', verificationsRouter);
 
 router.use('/api', isAuthorized);
 router.use('/api/v1/bookmarks', bookmarksRouter);
+router.use('/api/v1/conversations', conversationsRouter);
 router.use('/api/v1/files', filesRouter);
 router.use('/api/v1/friends', friendsRouter);
 router.use('/api/v1/posts', postsRouter);

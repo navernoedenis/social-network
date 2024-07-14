@@ -14,10 +14,10 @@ export const getSessionTokens = async (
   res: Response,
   next: NextFunction
 ) => {
-  const user = req.user!;
+  const me = req.user!;
 
   try {
-    const tokens = await sessionsTokensService.getMany(user.id);
+    const tokens = await sessionsTokensService.getMany(me.id);
 
     res.status(httpStatus.OK).json({
       success: true,
@@ -35,13 +35,13 @@ export const revokeSessionToken = async (
   res: Response,
   next: NextFunction
 ) => {
+  const me = req.user!;
   const tokenId = req.params.id;
-  const user = req.user!;
 
   try {
     const revokedToken = await sessionsTokensService.revokeOne({
       tokenId,
-      userId: user.id,
+      userId: me.id,
     });
     if (!revokedToken) {
       throw new BadRequest("Token doesn't exists");
@@ -63,12 +63,12 @@ export const revokeSessionTokens = async (
   res: Response,
   next: NextFunction
 ) => {
+  const me = req.user!;
   const cookieToken = parseCookieToken(req.cookies);
   const refreshToken = cookieToken.refreshToken!;
-  const user = req.user!;
 
   try {
-    await sessionsTokensService.revokeMany(user.id, {
+    await sessionsTokensService.revokeMany(me.id, {
       exceptCurrentToken: refreshToken,
     });
 

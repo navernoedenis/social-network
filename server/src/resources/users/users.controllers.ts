@@ -9,16 +9,39 @@ import { authCookie, httpStatus } from '@/utils/constants';
 import { Forbidden } from '@/utils/helpers';
 import { usersService } from './users.service';
 
-export const deleteMyAccount = async (
+export const getUsers = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const user = req.user!;
+  const { search = '' } = req.query;
 
   try {
-    const me = await usersService.deleteOne(user.id);
-    if (!me) {
+    const users = await usersService.getMany(search as string, {
+      withProfile: true,
+    });
+
+    res.status(httpStatus.OK).json({
+      success: true,
+      statusCode: httpStatus.OK,
+      data: users,
+      message: 'Founded users 🦝',
+    } as HttpResponse);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const me = req.user!;
+
+  try {
+    const userData = await usersService.deleteOne(me.id);
+    if (!userData) {
       throw new Forbidden('You have already removed yourself 🤗');
     }
 

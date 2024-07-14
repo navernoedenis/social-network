@@ -59,7 +59,7 @@ export const twoFactorAuthentication = async (
     const loginDto = req.body as LoginDto;
 
     // Todo: replace on settings service
-    const user = await usersService.findByEmail(loginDto.email, {
+    const user = await usersService.getByEmail(loginDto.email, {
       withSettings: true,
     });
 

@@ -11,7 +11,7 @@ import { users, messages } from '@/db/files/entities';
 
 export const groups = pgTable('groups', {
   id: serial('id').primaryKey(),
-  name: varchar('group_name').notNull().unique(),
+  name: varchar('group_name', { length: 30 }).notNull().unique(),
   authorId: integer('author_id')
     .references(() => users.id)
     .notNull(),

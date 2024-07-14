@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, or, like } from 'drizzle-orm';
 import { db } from '@/db';
 import {
   type FindKey,
@@ -9,16 +9,47 @@ import {
 import * as entities from '@/db/files/entities';
 
 class UsersService {
-  async findById(id: number, config: WithConfig = {}) {
-    return this.findOne('id', id, config);
+  async getOne(key: FindKey, value: string | number, config: WithConfig = {}) {
+    const user = await db.query.users.findFirst({
+      where: eq(entities.users[key], value),
+      with: {
+        ...(config.withProfile && { profile: true }),
+        ...(config.withSettings && { settings: true }),
+      },
+    });
+
+    return user;
   }
 
-  async findByEmail(email: string, config: WithConfig = {}) {
-    return this.findOne('email', email, config);
+  async getMany(word: string, config: WithConfig & { limit?: number } = {}) {
+    const { limit = 10 } = config;
+    const key = `%${word}%`;
+
+    return db.query.users.findMany({
+      where: or(
+        like(entities.users.email, key),
+        like(entities.users.firstname, key),
+        like(entities.users.lastname, key),
+        like(entities.users.username, key)
+      ),
+      with: {
+        ...(config.withProfile && { profile: true }),
+        ...(config.withSettings && { settings: true }),
+      },
+      limit,
+    });
   }
 
-  async findByUsername(username: string, config: WithConfig = {}) {
-    return this.findOne('username', username, config);
+  async getById(id: number, config: WithConfig = {}) {
+    return this.getOne('id', id, config);
+  }
+
+  async getByEmail(email: string, config: WithConfig = {}) {
+    return this.getOne('email', email, config);
+  }
+
+  async getByUsername(username: string, config: WithConfig = {}) {
+    return this.getOne('username', username, config);
   }
 
   async updateOne(userId: number, fields: UpdateFields) {
@@ -34,22 +65,6 @@ class UsersService {
       .delete(entities.users)
       .where(eq(entities.users.id, userId))
       .returning();
-
-    return user;
-  }
-
-  private async findOne(
-    key: FindKey,
-    value: string | number,
-    config: WithConfig = {}
-  ) {
-    const user = await db.query.users.findFirst({
-      where: eq(entities.users[key], value),
-      with: {
-        ...(config.withProfile && { profile: true }),
-        ...(config.withSettings && { settings: true }),
-      },
-    });
 
     return user;
   }

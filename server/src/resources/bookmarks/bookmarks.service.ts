@@ -1,6 +1,7 @@
 import { and, desc, eq, SQL } from 'drizzle-orm';
 import { db } from '@/db';
 import * as entities from '@/db/files/entities';
+import { bookmarkTypes } from '@/utils/constants';
 import { type BookmarkData } from './bookmarks.types';
 
 class BookmarksService {
@@ -24,8 +25,8 @@ class BookmarksService {
   async getMany(data: {
     page: number;
     limit: number;
-    entity?: BookmarkData['entity'];
-    userId?: BookmarkData['userId'];
+    entity?: (typeof bookmarkTypes)[number];
+    userId?: number;
   }) {
     const { page, limit } = data;
 

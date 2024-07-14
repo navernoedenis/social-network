@@ -9,6 +9,7 @@ import { authService } from '@/resources/auth';
 import { emailService } from '@/utils/services';
 import { passwordsService } from '@/resources/passwords';
 import { sessionsTokensService } from '@/resources/session-tokens';
+import { statusService } from '@/resources/status';
 import { usersService } from '@/resources/users';
 import { verificationsService } from '@/resources/verifications';
 
@@ -45,7 +46,7 @@ export const signup = async (
   const dto = req.body as SignUpDto;
 
   try {
-    const user = await usersService.findByEmail(dto.email);
+    const user = await usersService.getByEmail(dto.email);
     if (user) {
       throw new Conflict('Email is already taken');
     }
@@ -90,7 +91,7 @@ export const login = async (
   const dto = req.body as LoginDto;
 
   try {
-    const user = await usersService.findByEmail(dto.email, {
+    const user = await usersService.getByEmail(dto.email, {
       withProfile: true,
     });
     if (!user) {
@@ -123,14 +124,19 @@ export const login = async (
     };
 
     const newTokens = createJwtTokens(tokenPayload);
-    await sessionsTokensService.createOne(req, {
-      userId: user.id,
-      token: newTokens.refreshToken,
-    });
-
     const cookieToken = createCookieTokenWithOptions(newTokens.refreshToken, {
       rememberMe: dto.rememberMe,
     });
+
+    await Promise.all([
+      sessionsTokensService.createOne(req, {
+        userId: user.id,
+        token: newTokens.refreshToken,
+      }),
+      statusService.updateOne(user.id, {
+        isOnline: true,
+      }),
+    ]);
 
     res
       .status(httpStatus.OK)
@@ -154,12 +160,17 @@ export const logout = async (
   res: Response,
   next: NextFunction
 ) => {
+  const me = req.user!;
   const { refreshToken } = parseCookieToken(req.cookies);
 
   try {
     if (refreshToken) {
       await sessionsTokensService.deleteOne(refreshToken);
     }
+
+    await statusService.updateOne(me.id, {
+      isOnline: false,
+    });
 
     res
       .status(httpStatus.OK)
@@ -240,7 +251,7 @@ export const forgotPassword = async (
   const dto = req.body as ForgotPasswordDto;
 
   try {
-    const user = await usersService.findByEmail(dto.email);
+    const user = await usersService.getByEmail(dto.email);
     if (!user) {
       throw new Unauthorized('No user with this email');
     }

@@ -21,6 +21,11 @@ class AuthService {
         userId: user.id,
       });
 
+      await ctx.insert(entities.status).values({
+        userId: user.id,
+        lastOnline: null,
+      });
+
       await ctx.insert(entities.verifications).values({
         type: 'email',
         userId: user.id,

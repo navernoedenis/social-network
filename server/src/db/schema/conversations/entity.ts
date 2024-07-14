@@ -34,7 +34,7 @@ export const conversationsRelations = relations(
       fields: [conversations.userId],
       references: [users.id],
     }),
-    message: many(conversationsMessages),
+    messages: many(conversationsMessages),
   })
 );
 

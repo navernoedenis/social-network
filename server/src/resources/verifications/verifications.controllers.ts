@@ -19,7 +19,7 @@ export const createEmailVerification = async (
   res: Response,
   next: NextFunction
 ) => {
-  const user = req.user!;
+  const me = req.user!;
 
   try {
     const token = createToken();
@@ -29,7 +29,7 @@ export const createEmailVerification = async (
 
     await Promise.all([
       verificationsService.createEmailVerification({
-        userId: user.id,
+        userId: me.id,
         payload: token,
       }),
       emailService.sendEmail({

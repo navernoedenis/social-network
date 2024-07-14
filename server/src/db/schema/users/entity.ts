@@ -17,6 +17,7 @@ import {
   profiles,
   sessionTokens,
   settings,
+  status,
   subscriptions,
 } from '@/db/files/entities';
 
@@ -47,6 +48,10 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   profile: one(profiles, {
     fields: [users.id],
     references: [profiles.userId],
+  }),
+  status: one(status, {
+    fields: [users.id],
+    references: [status.userId],
   }),
   settings: one(settings, {
     fields: [users.id],

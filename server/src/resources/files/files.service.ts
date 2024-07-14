@@ -1,6 +1,6 @@
 import { and, eq, inArray } from 'drizzle-orm';
 import { db } from '@/db';
-import { NewFile } from '@/db/files/mocks';
+import { NewFile } from '@/db/files/models';
 
 import * as entities from '@/db/files/entities';
 

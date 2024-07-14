@@ -6,7 +6,6 @@ import {
 } from '@/types/main';
 
 import { postsService } from '@/resources/posts';
-
 import { httpStatus } from '@/utils/constants';
 import { paginateQuery } from '@/utils/helpers';
 
@@ -18,14 +17,14 @@ export const toggleBookmark = async (
   res: Response,
   next: NextFunction
 ) => {
-  const user = req.user!;
+  const me = req.user!;
   const dto = req.body as BookmarkDto;
 
   try {
     const bookmarkData: BookmarkData = {
       entity: dto.entity,
       entityId: dto.entityId,
-      userId: user.id,
+      userId: me.id,
     };
 
     const bookmark = await bookmarksService.getOne(bookmarkData);
@@ -51,21 +50,20 @@ export const toggleBookmark = async (
 };
 
 export const getBookmarks = async (
-  req: Request<unknown, unknown, unknown, { page: string; limit: string }>,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
+  const me = req.user!;
   const { page, limit } = paginateQuery(req.query, {
     defaultLimit: 3,
   });
-
-  const user = req.user!;
 
   try {
     const bookmarks = await bookmarksService.getMany({
       limit,
       page,
-      userId: user.id,
+      userId: me.id,
     });
 
     // we may have different bookmarks in the future
@@ -73,7 +71,7 @@ export const getBookmarks = async (
 
     for (const bookmark of bookmarks) {
       if (bookmark.entity === 'post') {
-        const post = await postsService.getOne(bookmark.entityId, user.id);
+        const post = await postsService.getOne(bookmark.entityId, me.id);
         bookmarksData.push(post);
       }
     }

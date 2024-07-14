@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   checkCookieToken,
+  isAuthorized,
   validateBody,
   verifyCookieToken,
 } from '@/utils/middlewares';
@@ -28,7 +29,7 @@ export const authRouter = Router();
 authRouter
   .post('/signup', validateBody(signUpSchema), signup)
   .post('/login', validateBody(loginSchema), twoFactorAuthentication, login)
-  .get('/logout', logout)
+  .get('/logout', isAuthorized, logout)
   .get('/verify-refresh', checkCookieToken, verifyCookieToken, updateTokens)
 
   .post('/forgot-password', validateBody(forgotPasswordSchema), forgotPassword)

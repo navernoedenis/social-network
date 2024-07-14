@@ -13,10 +13,10 @@ class PasswordsService {
     return password as Password;
   }
 
-  async updateOne(userId: number, newPassword: string) {
+  async updateOne(userId: number, hash: string) {
     await db
       .update(entities.passwords)
-      .set({ hash: newPassword })
+      .set({ hash })
       .where(eq(entities.passwords.userId, userId));
   }
 }

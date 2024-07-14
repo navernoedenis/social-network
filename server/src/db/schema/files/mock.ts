@@ -23,6 +23,13 @@ export const createFile = (userId: number, mediaType?: MediaType): NewFile => {
         '/random/night-of-the-demons-1988-trailer.mp4';
       break;
     }
+
+    case 'doc': {
+      url =
+        'https://social-network-files.s3.amazonaws.com' +
+        '/random/randall.strossen-super.kniebeugen.fb2';
+      break;
+    }
   }
 
   const isbn = faker.commerce.isbn();

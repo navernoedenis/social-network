@@ -31,24 +31,24 @@ export const updateData = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { username, ...otherUpdateData } = req.body as UpdateDataDto;
-  const user = req.user!;
+  const me = req.user!;
+  const { username, ...dto } = req.body as UpdateDataDto;
 
   try {
     const promises: Promise<unknown>[] = [
-      profilesService.updateOne(user.id, otherUpdateData),
+      profilesService.updateOne(me.id, dto),
     ];
 
     const isUsernameEmpty = username?.trim().length === 0;
     if (!isUsernameEmpty) {
-      const promise = usersService.updateOne(user.id, {
+      const promise = usersService.updateOne(me.id, {
         username,
       });
       promises.push(promise);
     }
 
     await Promise.all(promises);
-    const updatedProfile = await profilesService.getOne(user.id);
+    const updatedProfile = await profilesService.getOne(me.id);
 
     res.status(httpStatus.OK).json({
       success: true,
@@ -66,12 +66,12 @@ export const updatePhone = async (
   res: Response,
   next: NextFunction
 ) => {
+  const me = req.user!;
   const dto = req.body as UpdatePhoneDto;
-  const user = req.user!;
 
   try {
     const verification = await verificationsService.getPhoneVerification({
-      userId: user.id,
+      userId: me.id,
     });
 
     if (verification) {
@@ -82,14 +82,14 @@ export const updatePhone = async (
       throw new BadRequest(message);
     }
 
-    const profile = await profilesService.getOne(user.id);
+    const profile = await profilesService.getOne(me.id);
     if (profile.phone === dto.phone) {
       throw new BadRequest('You already have this phone number');
     }
 
     const shouldResetPhone = !!dto.phone === false;
     if (shouldResetPhone) {
-      await profilesService.updatePhone(user.id, null);
+      await profilesService.updatePhone(me.id, null);
       return res.status(httpStatus.OK).json({
         success: true,
         statusCode: httpStatus.OK,
@@ -101,12 +101,12 @@ export const updatePhone = async (
     const otp = createOtpPassword();
 
     await Promise.all([
-      profilesService.updatePhone(user.id, dto.phone),
+      profilesService.updatePhone(me.id, dto.phone),
       phoneService.sendSms({
         text: `Your phone verification code: ${otp} `,
       }),
       verificationsService.createPhoneVerification({
-        userId: user.id,
+        userId: me.id,
         payload: `${otp}`,
       }),
     ]);
@@ -127,12 +127,12 @@ export const confirmPhone = async (
   res: Response,
   next: NextFunction
 ) => {
+  const me = req.user!;
   const dto = req.body as ConfirmPhoneDto;
-  const user = req.user!;
 
   try {
     const verification = await verificationsService.getPhoneVerification({
-      userId: user.id,
+      userId: me.id,
     });
 
     if (!verification) {
@@ -145,7 +145,7 @@ export const confirmPhone = async (
     }
 
     await Promise.all([
-      profilesService.toggleIsPhoneVerified(user.id, true),
+      profilesService.toggleIsPhoneVerified(me.id, true),
       verificationsService.deletePhoneVerification(verification.id),
     ]);
 
@@ -165,11 +165,11 @@ export const updatePassword = async (
   res: Response,
   next: NextFunction
 ) => {
+  const me = req.user!;
   const dto = req.body as UpdatePasswordDto;
-  const user = req.user!;
 
   try {
-    const currentPassword = await passwordsService.getOne(user.id);
+    const currentPassword = await passwordsService.getOne(me.id);
 
     const isCurrentPasswordMatch = await verifyHash(
       dto.currentPassword,
@@ -180,7 +180,7 @@ export const updatePassword = async (
     }
 
     const hash = await createHash(dto.password);
-    await passwordsService.updateOne(user.id, hash);
+    await passwordsService.updateOne(me.id, hash);
 
     res.status(httpStatus.OK).json({
       success: true,

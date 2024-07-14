@@ -13,18 +13,18 @@ export const toggleSubscription = async (
   res: Response,
   next: NextFunction
 ) => {
-  const user = req.user!;
+  const me = req.user!;
   const friendId = parseInt(req.params.id);
 
   try {
-    const subscription = await subscriptionsService.getOne(user.id, friendId);
+    const subscription = await subscriptionsService.getOne(me.id, friendId);
     let message = '';
 
     if (subscription) {
-      await subscriptionsService.deleteOne(user.id, friendId);
+      await subscriptionsService.deleteOne(me.id, friendId);
       message = 'You deleted your subscription 🏎️';
     } else {
-      await subscriptionsService.createOne(user.id, friendId);
+      await subscriptionsService.createOne(me.id, friendId);
       message = 'You have subscribed to the user 🚛';
     }
 

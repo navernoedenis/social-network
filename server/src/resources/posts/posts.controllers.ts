@@ -27,11 +27,11 @@ export const createPost = async (
   res: Response,
   next: NextFunction
 ) => {
-  const user = req.user!;
+  const me = req.user!;
   const dto = req.body as CreatePostDto;
 
   try {
-    const post = await postsService.createOne(user.id, dto);
+    const post = await postsService.createOne(me.id, dto);
 
     res.status(httpStatus.OK).json({
       success: true,
@@ -49,11 +49,11 @@ export const getPost = async (
   res: Response,
   next: NextFunction
 ) => {
+  const me = req.user!;
   const postId = parseInt(req.params.id);
-  const user = req.user!;
 
   try {
-    const post = await postsService.getOne(postId, user.id);
+    const post = await postsService.getOne(postId, me.id);
 
     res.status(httpStatus.OK).json({
       success: true,
@@ -67,19 +67,18 @@ export const getPost = async (
 };
 
 export const getPosts = async (
-  req: Request<unknown, unknown, unknown, { page: string; limit: string }>,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
+  const me = req.user!;
   const { page, limit } = paginateQuery(req.query, {
     defaultLimit: 5,
   });
 
-  const user = req.user!;
-
   try {
     const posts = await postsService.getMany({
-      userId: user.id,
+      userId: me.id,
       page,
       limit,
     });
@@ -100,12 +99,12 @@ export const togglePostLike = async (
   res: Response,
   next: NextFunction
 ) => {
-  const postId = parseInt(req.params.id);
-  const user = req.user!;
+  const me = req.user!;
   const dto = req.body as CreateLikeDto;
+  const postId = parseInt(req.params.id);
 
   try {
-    const postLike = await postsService.getLike(postId, user.id);
+    const postLike = await postsService.getLike(postId, me.id);
 
     let isLiked: boolean | null = dto.value === 1;
     let message = `The post has been ${isLiked ? 'liked' : 'disliked'} 🧢`;
@@ -123,7 +122,7 @@ export const togglePostLike = async (
       await postsService.createLike({
         likeId: like.id,
         postId,
-        userId: user.id,
+        userId: me.id,
       });
     }
 
@@ -145,15 +144,15 @@ export const createComment = async (
   res: Response,
   next: NextFunction
 ) => {
+  const me = req.user!;
   const dto = req.body as CreateCommentDto;
   const postId = parseInt(req.params.id);
-  const user = req.user!;
 
   try {
     const comment = await commentsService.createOne({
       message: dto.message,
       parentId: dto.parentId,
-      userId: user.id,
+      userId: me.id,
     });
 
     if (!dto.parentId) {
@@ -206,13 +205,13 @@ export const deleteComment = async (
   res: Response,
   next: NextFunction
 ) => {
+  const me = req.user!;
   const commentId = parseInt(req.params.cid);
-  const user = req.user!;
 
   try {
     const comment = await commentsService.getOne(commentId);
-    const isAuthor = comment!.userId === user.id;
-    const isAdminOrRoot = user.role === 'admin' || user.role === 'root';
+    const isAuthor = comment!.userId === me.id;
+    const isAdminOrRoot = me.role === 'admin' || me.role === 'root';
 
     if (!(isAuthor || isAdminOrRoot)) {
       throw new Forbidden('You are not an author of this comment 👀');
@@ -236,12 +235,12 @@ export const toggleCommentLike = async (
   res: Response,
   next: NextFunction
 ) => {
-  const commentId = parseInt(req.params.cid);
-  const user = req.user!;
+  const me = req.user!;
   const dto = req.body as CreateLikeDto;
+  const commentId = parseInt(req.params.cid);
 
   try {
-    const commentLike = await postsService.getCommentLike(commentId, user.id);
+    const commentLike = await postsService.getCommentLike(commentId, me.id);
 
     let isLiked: boolean | null = dto.value === 1;
     let message = `The comment has been ${isLiked ? 'liked' : 'disliked'} 🍀`;
@@ -259,7 +258,7 @@ export const toggleCommentLike = async (
       await postsService.createCommentLike({
         likeId: like.id,
         commentId,
-        userId: user.id,
+        userId: me.id,
       });
     }
 

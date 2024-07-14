@@ -1,5 +1,8 @@
 import z from 'zod';
-import { phoneRegex } from './profiles.regex';
+
+export const phoneRegex = new RegExp(
+  /^(\+\d{1,2}\s)\(\d{3}\)[\s-]\d{3}[\s-]\d{4}$/
+);
 
 const OTP_PASSWORD_LENGTH = 6;
 const trimedString = z.string().trim().toLowerCase();

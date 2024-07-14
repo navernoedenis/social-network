@@ -8,16 +8,16 @@ export const isUsernameTaken = async (
   res: Response,
   next: NextFunction
 ) => {
+  const me = req.user!;
   const dto = req.body as UpdateDataDto;
-  const user = req.user!;
 
   try {
     if (!dto.username) {
       return next();
     }
 
-    const result = await usersService.findByUsername(dto.username);
-    if (!result || result.email === user.email) {
+    const result = await usersService.getByUsername(dto.username);
+    if (!result || result.email === me.email) {
       return next();
     }
 

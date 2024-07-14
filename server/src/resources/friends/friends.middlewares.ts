@@ -10,7 +10,7 @@ export const checkFriend = (
   } = {}
 ) => {
   return async (req: Request, res: Response, next: NextFunction) => {
-    const user = req.user!;
+    const me = req.user!;
     const userId = parseInt(req.params.id);
 
     const {
@@ -20,13 +20,13 @@ export const checkFriend = (
     } = config;
 
     try {
-      const friendship = await friendsService.getOne(userId, user.id);
-      if (notFoundError && !friendship) {
-        throw new NotFound('Friendship has not been founded 🥛');
+      const friend = await friendsService.getOne(userId, me.id);
+      if (notFoundError && !friend) {
+        throw new NotFound('Friend has not been founded 🥛');
       }
 
-      const isPending = friendship?.status === 'pending';
-      const isApproved = friendship?.status === 'approved';
+      const isPending = friend?.status === 'pending';
+      const isApproved = friend?.status === 'approved';
 
       if (!skipPending && isPending) {
         throw new BadRequest(

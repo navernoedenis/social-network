@@ -40,13 +40,13 @@ class FriendsService {
   }
 
   async approveOne(myId: number, friendId: number) {
-    const [friendship] = await db
+    const [friend] = await db
       .update(entities.friends)
       .set({ status: 'approved' })
       .where(this.friendQuery(myId, friendId))
       .returning();
 
-    return friendship;
+    return friend;
   }
 
   async friendsCount(myId: number) {

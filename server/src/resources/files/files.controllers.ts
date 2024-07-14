@@ -24,7 +24,7 @@ export const uploadFiles = async (
   res: Response,
   next: NextFunction
 ) => {
-  const user = req.user!;
+  const me = req.user!;
 
   try {
     const form = formidable({});
@@ -57,7 +57,7 @@ export const uploadFiles = async (
 
     const newFiles = await awsS3Service.uploadFiles(mediaFiles);
     const newFilesData = newFiles.map((file) => ({
-      userId: user.id,
+      userId: me.id,
       bucketKey: file.bucketKey,
       name: file.filename,
       type: mediaType,
@@ -82,7 +82,7 @@ export const deleteFiles = async (
   res: Response,
   next: NextFunction
 ) => {
-  const user = req.user!;
+  const me = req.user!;
   const dto = req.body as DeleteFilesDto;
 
   try {
@@ -91,7 +91,7 @@ export const deleteFiles = async (
       throw new BadRequest('Invalid ids or no files to remove 🫷');
     }
 
-    const isMyFiles = files.every((file) => file.userId === user.id);
+    const isMyFiles = files.every((file) => file.userId === me.id);
     if (!isMyFiles) {
       throw new Forbidden('You are trying to remove not yours files 📢');
     }
@@ -106,7 +106,7 @@ export const deleteFiles = async (
 
     await Promise.all([
       awsS3Service.deleteFiles(bucketKeys),
-      filesService.deleteMany(user.id, filesIds),
+      filesService.deleteMany(me.id, filesIds),
     ]);
 
     res.status(httpStatus.OK).json({
