@@ -12,7 +12,6 @@ export * from '../schema/posts/entity';
 export * from '../schema/profiles/entity';
 export * from '../schema/session-tokens/entity';
 export * from '../schema/settings/entity';
-export * from '../schema/status/entity';
 export * from '../schema/subscriptions/entity';
 export * from '../schema/users/entity';
 export * from '../schema/verifications/entity';

@@ -1,4 +1,4 @@
-import chalk, { ForegroundColor, BackgroundColor } from 'chalk';
+import chalk, { type ForegroundColor, type BackgroundColor } from 'chalk';
 
 type TData = string | number | boolean;
 

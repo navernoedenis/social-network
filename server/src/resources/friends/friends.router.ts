@@ -2,32 +2,47 @@ import { Router } from 'express';
 import { checkUser, checkUserId } from '@/utils/middlewares';
 import { checkFriend } from './friends.middlewares';
 import {
-  approveFriend,
-  createFriend,
+  approveFriendRequest,
+  createFriendRequest,
   deleteFriend,
   getFriends,
-  getMyRequests,
-  getRequests,
+  getFriendsCount,
+  getIncomingRequests,
+  getOutgoingRequests,
 } from './friends.controllers';
 
 export const friendsRouter = Router();
 
 friendsRouter
   .get('/', getFriends)
-  .post('/:id', checkUserId, checkUser, checkFriend(), createFriend)
   .delete(
     '/:id',
     checkUserId,
     checkUser,
-    checkFriend({ notFoundError: true, skipPending: true }),
+    checkFriend({
+      notFoundError: true,
+      skipPending: true,
+      skipApproved: true,
+    }),
     deleteFriend
   )
+  .get('/count', getFriendsCount)
   .post(
     '/:id/approve',
     checkUserId,
     checkUser,
-    checkFriend({ notFoundError: true, skipPending: true }),
-    approveFriend
+    checkFriend({
+      notFoundError: true,
+      skipPending: true,
+    }),
+    approveFriendRequest
   )
-  .get('/requests', getRequests)
-  .get('/requests/my', getMyRequests);
+  .post(
+    '/:id/request',
+    checkUserId,
+    checkUser,
+    checkFriend(),
+    createFriendRequest
+  )
+  .get('/requests/incoming', getIncomingRequests)
+  .get('/requests/outgoing', getOutgoingRequests);

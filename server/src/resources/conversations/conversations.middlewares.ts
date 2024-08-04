@@ -17,11 +17,7 @@ export const checkCreation = async (
       throw new Forbidden("You can't create a converastion with yourself 🌨️");
     }
 
-    const conversation = await conversationsService.findOne({
-      authorId: me.id,
-      userId: dto.userId,
-    });
-
+    const conversation = await conversationsService.getOne(me.id, dto.userId);
     if (conversation) {
       throw new NotFound('Conversation is already exists 🫠');
     }
@@ -38,16 +34,17 @@ export const checkDeleting = async (
   next: NextFunction
 ) => {
   const me = req.user!;
-  const id = parseInt(req.params.id);
+  const userId = parseInt(req.params.id);
 
   try {
-    const conversation = await conversationsService.getOne(id, me.id);
+    const conversation = await conversationsService.getOne(me.id, userId);
     if (!conversation) {
       throw new NotFound('Conversation does not exist 💎');
     }
 
-    const { authorId, userId } = conversation;
-    const hasPermission = [authorId, userId].includes(me.id);
+    const hasPermission = [conversation.authorId, conversation.userId].includes(
+      me.id
+    );
     if (hasPermission) {
       return next();
     }

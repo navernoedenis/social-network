@@ -62,7 +62,7 @@ export const verifyCookieToken = async (
     }
 
     const sessionTokens = await sessionsTokensService.getMany(user.id, {
-      addTokenColumn: true,
+      withToken: true,
     });
 
     const isSessionTokenExists = sessionTokens.find(

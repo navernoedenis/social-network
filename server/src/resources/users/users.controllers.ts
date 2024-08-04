@@ -7,19 +7,17 @@ import {
 
 import { authCookie, httpStatus } from '@/utils/constants';
 import { Forbidden } from '@/utils/helpers';
-import { usersService } from './users.service';
+import { usersService, usersSearchService } from './users.service';
 
-export const getUsers = async (
+export const searchUsers = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const { search = '' } = req.query;
+  const search = req.query.search as string;
 
   try {
-    const users = await usersService.getMany(search as string, {
-      withProfile: true,
-    });
+    const users = await usersSearchService.getMany(search ?? '');
 
     res.status(httpStatus.OK).json({
       success: true,
@@ -40,8 +38,8 @@ export const deleteUser = async (
   const me = req.user!;
 
   try {
-    const userData = await usersService.deleteOne(me.id);
-    if (!userData) {
+    const user = await usersService.deleteOne(me.id);
+    if (!user) {
       throw new Forbidden('You have already removed yourself 🤗');
     }
 

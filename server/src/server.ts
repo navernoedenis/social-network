@@ -1,7 +1,8 @@
 import './packages';
 
-import { app } from '@/app';
+import { httpServer } from '@/app';
 import { ENV } from '@/app/env';
+import { initSocket } from '@/socket';
 
 import { cacheClient } from '@/config/cache-client.config';
 import { dbClient } from '@/config/db-client.config';
@@ -13,7 +14,9 @@ const startServer = async () => {
   try {
     await Promise.all([dbClient.connect(), cacheClient.connect()]);
 
-    app.listen(ENV.SERVER_PORT, ENV.SERVER_HOST, () => {
+    httpServer.listen(ENV.SERVER_PORT, ENV.SERVER_HOST, () => {
+      initSocket(httpServer);
+
       const hostname = colorWord.one(
         `http://${ENV.SERVER_HOST}:${ENV.SERVER_PORT}`,
         'yellow'
@@ -23,7 +26,6 @@ const startServer = async () => {
     });
   } catch (error) {
     print.error(getErrorMessage(error));
-
     await dbClient.end();
     await cacheClient.disconnect();
     process.exit(1);

@@ -8,7 +8,10 @@ class MessagesService {
   async createOne(data: NewMessage) {
     const [message] = await db
       .insert(entities.messages)
-      .values({ authorId: data.authorId, body: data.body })
+      .values({
+        authorId: data.authorId,
+        body: data.body,
+      })
       .returning();
 
     return message;

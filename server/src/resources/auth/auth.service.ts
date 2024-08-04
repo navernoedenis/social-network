@@ -9,7 +9,7 @@ class AuthService {
     await db.transaction(async (ctx) => {
       const [user] = await ctx
         .insert(entities.users)
-        .values({ email: data.email })
+        .values({ email: data.email, username: data.username })
         .returning();
 
       await ctx.insert(entities.passwords).values({
@@ -19,11 +19,6 @@ class AuthService {
 
       await ctx.insert(entities.profiles).values({
         userId: user.id,
-      });
-
-      await ctx.insert(entities.status).values({
-        userId: user.id,
-        lastOnline: null,
       });
 
       await ctx.insert(entities.verifications).values({

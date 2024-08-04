@@ -7,14 +7,19 @@ export const createUser = (): NewUser => {
     null,
   ]);
 
-  const username = faker.internet.userName().toLowerCase();
-
   return {
     email: faker.internet.email().toLowerCase(),
-    username: faker.helpers.arrayElement([username, null]),
+    username: faker.internet.userName().toLowerCase(),
     photo: faker.helpers.arrayElement([faker.image.avatar(), null]),
     firstname,
     lastname: firstname ? faker.person.lastName() : null,
     role: faker.helpers.arrayElement(['admin', 'user', 'user', 'user']),
+    lastOnline: faker.helpers.arrayElement([
+      null,
+      faker.date.between({
+        from: '2023-01-01T00:00:00.000Z',
+        to: '2024-01-01T00:00:00.000Z',
+      }),
+    ]),
   };
 };

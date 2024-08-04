@@ -1,35 +1,44 @@
 import { eq } from 'drizzle-orm';
 import { db } from '@/db';
-import { type Profile } from '@/db/files/models';
-import { type ToggleKey, type UpdateFields } from './profiles.types';
-
 import * as entities from '@/db/files/entities';
+
+import { profilesCache } from './profiles.cache';
+import { type ToggleKey, type UpdateFields } from './profiles.types';
 
 class ProfilesService {
   async getOne(userId: number) {
+    const cacheData = await profilesCache.getOne(userId);
+    if (cacheData) return cacheData;
+
     const profile = await db.query.profiles.findFirst({
       where: eq(entities.profiles.userId, userId),
     });
 
-    return profile as Profile;
+    const profileData = profile!;
+    await profilesCache.createOne(profileData);
+    return profileData;
   }
 
   async updatePhone(userId: number, phone: string | null) {
-    return db
+    const [updatedProfile] = await db
       .update(entities.profiles)
-      .set({
-        phone,
-        isPhoneVerified: false,
-      })
-      .where(eq(entities.profiles.userId, userId));
+      .set({ phone, isPhoneVerified: false })
+      .where(eq(entities.profiles.userId, userId))
+      .returning();
+
+    await profilesCache.createOne(updatedProfile);
+    return updatedProfile;
   }
 
   async updateOne(userId: number, fields: UpdateFields) {
-    return db
+    const [updatedProfile] = await db
       .update(entities.profiles)
       .set(fields)
       .where(eq(entities.profiles.userId, userId))
       .returning();
+
+    await profilesCache.createOne(updatedProfile);
+    return updatedProfile;
   }
 
   async toggleIsActive(userId: number, value: boolean) {
@@ -60,6 +69,7 @@ class ProfilesService {
       .where(eq(entities.profiles.userId, userId))
       .returning();
 
+    await profilesCache.createOne(updatedProfile);
     return updatedProfile;
   }
 }

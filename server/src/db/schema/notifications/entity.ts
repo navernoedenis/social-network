@@ -1,5 +1,13 @@
 import { relations } from 'drizzle-orm';
-import { integer, pgTable, serial, text, varchar } from 'drizzle-orm/pg-core';
+import {
+  integer,
+  pgTable,
+  serial,
+  text,
+  timestamp,
+  varchar,
+} from 'drizzle-orm/pg-core';
+
 import { users } from '@/db/files/entities';
 import { notificationTypes } from '@/utils/constants';
 
@@ -11,10 +19,11 @@ export const notifications = pgTable('notifications', {
   senderId: integer('sender_id').references(() => users.id, {
     onDelete: 'cascade',
   }),
-
   recepientId: integer('recepient_id')
     .references(() => users.id, { onDelete: 'cascade' })
     .notNull(),
+
+  createdAt: timestamp('created_at', { mode: 'date' }).notNull().defaultNow(),
 });
 
 export const notificationsRelations = relations(notifications, ({ one }) => ({

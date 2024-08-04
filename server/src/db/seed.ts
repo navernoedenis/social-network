@@ -91,8 +91,9 @@ const startSeeding = async () => {
       });
 
       // 2FA VERIFICATION
-      const shouldAdd2FA = getBoolean();
-      if (shouldAdd2FA && !isRoot) {
+      const shouldAdd2FA = false;
+      // const shouldAdd2FA = !isRoot && getBoolean();
+      if (shouldAdd2FA) {
         const token = createJwtToken('refresh', {
           id: user.id,
           email: user.email,
@@ -135,15 +136,11 @@ const startSeeding = async () => {
         });
       }
 
-      // STATUS
-      const status = mocks.createStatus(user.id);
-      await db.insert(entities.status).values(status);
-
       // SETTINGS
-      const settingsData = mocks.createSettings(user.id);
+      const settingsData = mocks.createSettings(user.id, shouldAdd2FA);
       await db.insert(entities.settings).values(settingsData);
 
-      // CONVERSATION
+      // CONVERSATION;
       const shouldCreateConversation = getBoolean();
       if (shouldCreateConversation) {
         const friendIds = userIds.filter((id) => id !== user.id);

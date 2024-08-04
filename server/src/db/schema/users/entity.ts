@@ -4,6 +4,7 @@ import {
   pgTable,
   serial,
   text,
+  timestamp,
   uniqueIndex,
   varchar,
 } from 'drizzle-orm/pg-core';
@@ -17,7 +18,6 @@ import {
   profiles,
   sessionTokens,
   settings,
-  status,
   subscriptions,
 } from '@/db/files/entities';
 
@@ -28,11 +28,14 @@ export const users = pgTable(
   {
     id: serial('id').primaryKey(),
     email: varchar('email', { length: 50 }).notNull().unique(),
-    username: varchar('username', { length: 30 }).unique(),
+    username: varchar('username', { length: 30 }).notNull().unique(),
     photo: text('photo'),
     firstname: varchar('firstname', { length: 50 }),
     lastname: varchar('lastname', { length: 50 }),
     role: text('role', { enum: roles }).notNull().default('user'),
+    lastOnline: timestamp('last_online', { mode: 'date' }).$onUpdate(
+      () => new Date()
+    ),
   },
   (table) => ({
     emailIdx: uniqueIndex('users_email_idx').on(table.email),
@@ -48,10 +51,6 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   profile: one(profiles, {
     fields: [users.id],
     references: [profiles.userId],
-  }),
-  status: one(status, {
-    fields: [users.id],
-    references: [status.userId],
   }),
   settings: one(settings, {
     fields: [users.id],

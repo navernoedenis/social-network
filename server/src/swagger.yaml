@@ -766,30 +766,24 @@ paths:
                   - type: object
                     properties:
                       data:
-                        type: object
-                        properties:
-                          count:
-                            type: number
-                            example: 34
-                          friends:
-                            type: array
-                            items:
-                              $ref: '#/components/schemas/user_and_profile'
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/user_and_profile'
                       message:
                         type: text
                         example: Here are you friends 🛩️
 
-  /api/v1/friends/{id}:
-    post:
+  /api/v1/friends/count:
+    get:
       tags:
         - Friends
       security:
         - bearerToken: []
-      summary: create a friend request
+      summary: get friends count
 
       responses:
         '200':
-          description: friend request has been created
+          description: get count
           content:
             application/json:
               schema:
@@ -798,44 +792,13 @@ paths:
                   - type: object
                     properties:
                       data:
-                        type: object
-                        example: null
+                        type: number
+                        example: 44
                       message:
                         type: text
-                        example: You have created a friendship request 🫒
+                        example: Your friends count 📐
 
-        '400':
-          description: friend request already exists
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/replies/error'
-                  - type: object
-                    properties:
-                      statusCode:
-                        type: number
-                        example: 400
-                      error:
-                        type: string
-                        example: You or your friend already created friendship request 🦏
-
-        '404':
-          description: user hasn't been found
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/replies/error'
-                  - type: object
-                    properties:
-                      statusCode:
-                        type: number
-                        example: 404
-                      error:
-                        type: string
-                        example: User does not exist 🔍
-
+  /api/v1/friends/{id}:
     delete:
       tags:
         - Friends
@@ -898,7 +861,7 @@ paths:
         - Friends
       security:
         - bearerToken: []
-      summary: add friend to list
+      summary: approve friend request
 
       responses:
         '200':
@@ -949,13 +912,70 @@ paths:
                         type: string
                         example: You can not follow on yourself 🚫
 
-  /api/v1/friends/requests:
+  /api/v1/friends/{id}/request:
+    post:
+      tags:
+        - Friends
+      security:
+        - bearerToken: []
+      summary: create a friend request
+
+      responses:
+        '200':
+          description: friend request has been created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/ok'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        example: null
+                      message:
+                        type: text
+                        example: You have created a friendship request 🫒
+
+        '400':
+          description: friend request already exists
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - type: object
+                    properties:
+                      statusCode:
+                        type: number
+                        example: 400
+                      error:
+                        type: string
+                        example: You or your friend already created friendship request 🦏
+
+        '404':
+          description: user hasn't been found
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/replies/error'
+                  - type: object
+                    properties:
+                      statusCode:
+                        type: number
+                        example: 404
+                      error:
+                        type: string
+                        example: User does not exist 🔍
+
+  /api/v1/friends/requests/incoming:
     get:
       tags:
         - Friends
       security:
         - bearerToken: []
-      summary: get friend requests
+      summary: get incoming friend requests
 
       responses:
         '200':
@@ -975,13 +995,13 @@ paths:
                         type: text
                         example: Your friends requests 🗞️
 
-  /api/v1/friends/requests/my:
+  /api/v1/friends/requests/outgoing:
     get:
       tags:
         - Friends
       security:
         - bearerToken: []
-      summary: get sent friend requests
+      summary: get ougoing friend requests
 
       responses:
         '200':
@@ -1568,10 +1588,10 @@ paths:
         - Session tokens
       security:
         - bearerToken: []
-      summary: revoke all my session tokens except current one
+      summary: delete all session tokens, except current one
       responses:
         '200':
-          description: revoke session tokens
+          description: delete session tokens
           content:
             application/json:
               schema:
@@ -1584,7 +1604,7 @@ paths:
                         example: null
                       message:
                         type: text
-                        example: You tokens has been revoked!
+                        example: You tokens has been deleted!
 
           '401':
             description: bearer token is invalid or expired
@@ -1599,16 +1619,16 @@ paths:
                           type: string
                           example: No bearer token
 
-  /api/v1/session-tokens/{id}:
+  /api/v1/session-tokens/{token}:
     delete:
       tags:
         - Session tokens
       security:
         - bearerToken: []
-      summary: revoke session token
+      summary: delete session token
       responses:
         '200':
-          description: revoke token
+          description: delete token
           content:
             application/json:
               schema:
@@ -1621,7 +1641,7 @@ paths:
                         example: null
                       message:
                         type: text
-                        example: You token has been revoked!
+                        example: You token has been deleted!
 
         '400':
           description: token doesn't exists
@@ -1660,7 +1680,7 @@ paths:
                         type: text
                         example: You have subscribed to the user 🚛
         '403':
-          description: revoke token
+          description: delete token
           content:
             application/json:
               schema:
@@ -1718,7 +1738,7 @@ paths:
           schema:
             type: string
           description: search key field
-      summary: find users by fields
+      summary: find users by email, username, firstname or lastname
 
       responses:
         '200':

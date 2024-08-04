@@ -1,10 +1,14 @@
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq, desc, inArray } from 'drizzle-orm';
 import { db } from '@/db';
 import { type CommentLike, type PostLike } from '@/db/files/models';
 import * as entities from '@/db/files/entities';
 
 import { calcLikes } from './posts.helpers';
 import { type CreatePostDto, type Post, type PostComment } from './posts.types';
+
+// TODO:
+// 1. rewrite everything to make it clearer
+// 2. rewrite on pure sql to reduce code and remove helpers
 
 class PostsService {
   async createOne(userId: number, dto: CreatePostDto) {
@@ -33,7 +37,105 @@ class PostsService {
   }
 
   async getOne(id: number, userId: number) {
-    // Todo: REWRITE ON SQL
+    // const post = await db.execute(sql`
+    //     WITH
+    //       p_files AS (
+    //         SELECT * FROM posts_files pf
+    //         JOIN files f ON f.id = pf.file_id
+    //       ),
+    //       p_likes AS (
+    //         SELECT * FROM posts_likes pl
+    //         JOIN likes l ON l.id = pl.like_id
+    //       )
+    //     SELECT
+    //       p.*,
+    //       ROW_TO_JSON(u) AS user,
+    //       ARRAY(
+    //         SELECT ROW_TO_JSON(pf) FROM p_files pf
+    //         WHERE pf.post_id = p.id
+    //       ) AS files,
+    //       CAST((
+    //         SELECT COUNT(*) FROM p_likes pl
+    //         WHERE
+    //           pl.value = 1 AND
+    //           pl.post_id = p.id
+    //       ) AS INTEGER) AS likes,
+    //       CAST((
+    //         SELECT COUNT(*) FROM p_likes pl
+    //         WHERE
+    //           pl.value = -1 AND
+    //           pl.post_id = p.id
+    //       ) AS INTEGER) AS dislikes,
+    //       EXISTS(
+    //         SELECT * FROM p_likes pl
+    //         WHERE
+    //           pl.post_id = p.id AND
+    //           pl.user_id = ${userId} AND
+    //           pl.value = 1
+    //       ) AS is_liked,
+    //       EXISTS(
+    //         SELECT * FROM p_likes pl
+    //         WHERE
+    //           pl.post_id = p.id AND
+    //           pl.user_id = ${userId} AND
+    //           pl.value = -1
+    //       ) AS is_disliked
+    //     FROM posts p
+    //     JOIN users u ON u.id = p.user_id
+    //     WHERE p.id = ${id}
+    //     GROUP BY p.id, u.id
+    // `);
+    // return post.rows[0] ?? null;
+    //
+    // const postComments = await db.execute(sql`
+    //     WITH RECURSIVE my_comments AS (
+    //       SELECT
+    //         c.*,
+    //         ROW_TO_JSON(u) AS user,
+    //         CAST((
+    //           SELECT COUNT(*) FROM comments_likes cl
+    //           JOIN likes l ON l.id = cl.like_id
+    //           WHERE
+    //             cl.comment_id = c.id AND
+    //             l.value = 1
+    //         ) AS INTEGER) AS likes,
+    //         CAST((
+    //           SELECT COUNT(*) FROM comments_likes cl
+    //           JOIN likes l ON l.id = cl.like_id
+    //           WHERE
+    //             cl.comment_id = c.id AND
+    //             l.value = -1
+    //         ) AS INTEGER) AS dislikes
+    //       FROM posts_comments pc
+    //       JOIN comments c ON c.id = pc.comment_id
+    //       JOIN users u ON u.id = c.user_id
+    //       WHERE pc.post_id = ${id}
+    //       UNION ALL
+    //       SELECT
+    //         nc.*,
+    //         ROW_TO_JSON(u) AS user,
+    //         CAST((
+    //           SELECT COUNT(*) FROM comments_likes cl
+    //           JOIN likes l ON l.id = cl.like_id
+    //           WHERE
+    //             cl.comment_id = nc.id AND
+    //             l.value = 1
+    //         ) AS INTEGER) AS likes,
+    //         CAST((
+    //           SELECT COUNT(*) FROM comments_likes cl
+    //           JOIN likes l ON l.id = cl.like_id
+    //           WHERE
+    //             cl.comment_id = nc.id AND
+    //             l.value = -1
+    //         ) AS INTEGER) AS dislikes
+    //       FROM comments nc
+    //       JOIN my_comments mc ON mc.id = nc.parent_id
+    //       JOIN users u ON u.id = nc.user_id
+    //     )
+    //     SELECT * FROM my_comments
+    // `);
+    // return postComments.rows ?? null;
+
     const post = await db.query.posts.findFirst({
       where: eq(entities.posts.id, id),
       with: {
@@ -45,14 +147,14 @@ class PostsService {
 
     if (!post) return null;
 
-    const postData = await this.getPostData({
+    const data = await this.getPostData({
       comments: post.comments,
       files: post.files,
       userId,
       postId: post.id,
     });
 
-    return { ...post, ...postData };
+    return { ...post, ...data };
   }
 
   async getMany(config: { page: number; limit: number; userId: number }) {
@@ -67,7 +169,7 @@ class PostsService {
         files: true,
         comments: true,
       },
-      // orderBy: [desc(entities.posts.createdAt)],
+      orderBy: [desc(entities.posts.createdAt)],
     });
 
     const posts: Post[] = [];

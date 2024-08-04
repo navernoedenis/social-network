@@ -1,129 +1,146 @@
-import { and, count, eq, inArray, or, SQL } from 'drizzle-orm';
+import { and, count, eq, or, SQL } from 'drizzle-orm';
+
 import { db } from '@/db';
 import * as entities from '@/db/files/entities';
 
+import { buildFriendQuery, getFriendsData } from './friends.helper';
+import { type FriendsParams, type RequestStatus } from './friends.types';
+import {
+  friendsCache,
+  friendsRequestCache,
+  friendsCountCache,
+} from './friends.cache';
+
 class FriendsService {
-  async getOne(myId: number, friendId: number) {
-    return db.query.friends.findFirst({
-      where: this.friendQuery(myId, friendId),
+  async getOne(userId: number, friendId: number) {
+    const cacheData = await friendsCache.getOne(userId, friendId);
+    if (cacheData) return cacheData;
+
+    const friend = await db.query.friends.findFirst({
+      where: buildFriendQuery(userId, friendId),
     });
+
+    if (!friend) return null;
+
+    await friendsCache.createOne(friend);
+    return friend;
   }
 
-  async getMany(config: { myId: number; page: number; limit: number }) {
+  async getMany(config: { userId: number; page: number; limit: number }) {
+    const cacheData = await friendsCache.getMany(config);
+    if (cacheData) return cacheData;
+
     const sql = and(
       eq(entities.friends.status, 'approved'),
       or(
-        eq(entities.friends.userId, config.myId),
-        eq(entities.friends.friendId, config.myId)
+        eq(entities.friends.userId, config.userId),
+        eq(entities.friends.friendId, config.userId)
       )
     );
 
-    return this.getFriends({ ...config, sql });
+    const friends = await getFriendsData({ ...config, sql });
+    await friendsCache.createMany({
+      ...config,
+      data: friends,
+    });
+
+    return friends;
   }
 
-  async createOne(myId: number, friendId: number) {
-    const [friendship] = await db
-      .insert(entities.friends)
-      .values({ userId: myId, friendId, status: 'pending' })
-      .returning();
-
-    return friendship;
-  }
-
-  async deleteOne(myId: number, friendId: number) {
+  async deleteOne(userId: number, friendId: number) {
     const [removedFriend] = await db
       .delete(entities.friends)
-      .where(this.friendQuery(myId, friendId))
+      .where(buildFriendQuery(userId, friendId))
       .returning();
 
+    await friendsCache.deleteMany(userId, friendId);
     return removedFriend;
   }
+}
 
-  async approveOne(myId: number, friendId: number) {
+class FriendsRequestService {
+  async createOne(userId: number, friendId: number) {
+    const [friendRequest] = await db
+      .insert(entities.friends)
+      .values({
+        status: 'pending',
+        userId,
+        friendId,
+      })
+      .returning();
+
+    await Promise.all([
+      friendsRequestCache.deleteOne(userId),
+      friendsRequestCache.deleteOne(friendId),
+    ]);
+
+    return friendRequest;
+  }
+
+  async approveOne(userId: number, friendId: number) {
     const [friend] = await db
       .update(entities.friends)
       .set({ status: 'approved' })
-      .where(this.friendQuery(myId, friendId))
+      .where(buildFriendQuery(userId, friendId))
       .returning();
+
+    await Promise.all([
+      friendsRequestCache.deleteOne(userId),
+      friendsRequestCache.deleteOne(friendId),
+    ]);
 
     return friend;
   }
 
-  async friendsCount(myId: number) {
-    const approvedQuery = eq(entities.friends.status, 'approved');
-    const friendQuery = or(
-      eq(entities.friends.userId, myId),
-      eq(entities.friends.friendId, myId)
-    );
+  async getMany(params: FriendsParams & { status: RequestStatus }) {
+    const cacheData = await friendsRequestCache.getMany(params);
+    if (cacheData) return cacheData;
+
+    const requestSQL: SQL[] = [eq(entities.friends.status, 'pending')];
+
+    if (params.status === 'incoming') {
+      requestSQL.push(eq(entities.friends.friendId, params.userId));
+    } else {
+      requestSQL.push(eq(entities.friends.userId, params.userId));
+    }
+
+    const friends = await getFriendsData({
+      ...params,
+      sql: and(...requestSQL),
+    });
+
+    await friendsRequestCache.createMany({
+      ...params,
+      data: friends,
+    });
+
+    return friends;
+  }
+}
+
+class FriendsCountService {
+  async getCount(userId: number) {
+    const cacheData = await friendsCountCache.getOne(userId);
+    if (typeof cacheData === 'number') return cacheData;
 
     const [result] = await db
       .select({ count: count() })
       .from(entities.friends)
-      .where(and(approvedQuery, friendQuery));
+      .where(
+        and(
+          eq(entities.friends.status, 'approved'),
+          or(
+            eq(entities.friends.userId, userId),
+            eq(entities.friends.friendId, userId)
+          )
+        )
+      );
 
+    await friendsCountCache.createOne(userId, result.count);
     return result.count;
-  }
-
-  async getRequests(config: { myId: number; page: number; limit: number }) {
-    const sql = and(
-      eq(entities.friends.friendId, config.myId),
-      eq(entities.friends.status, 'pending')
-    );
-
-    return this.getFriends({ ...config, sql });
-  }
-
-  async getMyRequests(config: { myId: number; page: number; limit: number }) {
-    const sql = and(
-      eq(entities.friends.userId, config.myId),
-      eq(entities.friends.status, 'pending')
-    );
-
-    return this.getFriends({ ...config, sql });
-  }
-
-  private friendQuery(myId: number, friendId: number) {
-    return or(
-      and(
-        eq(entities.friends.userId, myId),
-        eq(entities.friends.friendId, friendId)
-      ),
-      and(
-        eq(entities.friends.userId, friendId),
-        eq(entities.friends.friendId, myId)
-      )
-    );
-  }
-
-  private async getFriends(config: {
-    limit?: number;
-    myId: number;
-    page?: number;
-    sql: SQL<unknown> | undefined;
-  }) {
-    const { myId, sql, page = 1, limit = 0 } = config;
-
-    const requests = await db.query.friends.findMany({
-      where: sql,
-      limit,
-      offset: limit * page - limit,
-    });
-
-    const ids = requests.map((request) =>
-      request.userId === myId ? request.friendId : request.userId
-    );
-
-    if (!ids.length) {
-      return [];
-    }
-
-    return db.query.users.findMany({
-      where: inArray(entities.users.id, ids),
-      with: {
-        profile: true,
-      },
-    });
   }
 }
 
+export const friendsCountService = new FriendsCountService();
+export const friendsRequestService = new FriendsRequestService();
 export const friendsService = new FriendsService();

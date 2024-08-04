@@ -1,11 +1,30 @@
-import { and, desc, eq, SQL } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
+
 import { db } from '@/db';
 import * as entities from '@/db/files/entities';
-import { bookmarkTypes } from '@/utils/constants';
-import { type BookmarkData } from './bookmarks.types';
+
+import { type BookmarkData, type BookmarksParams } from './bookmarks.types';
+import { bookmarksCache } from './bookmarks.cache';
 
 class BookmarksService {
-  async createOne(data: BookmarkData) {
+  async toggleOne(data: BookmarkData) {
+    await bookmarksCache.deleteMany(data.userId);
+
+    const bookmarkSQL = and(
+      eq(entities.bookmarks.userId, data.userId),
+      eq(entities.bookmarks.entity, data.entity),
+      eq(entities.bookmarks.entityId, data.entityId)
+    );
+
+    const bookmark = await db.query.bookmarks.findFirst({
+      where: bookmarkSQL,
+    });
+
+    if (bookmark) {
+      await db.delete(entities.bookmarks).where(bookmarkSQL);
+      return null;
+    }
+
     const [newBookmark] = await db
       .insert(entities.bookmarks)
       .values(data)
@@ -14,55 +33,30 @@ class BookmarksService {
     return newBookmark;
   }
 
-  async getOne(data: Partial<BookmarkData>) {
-    const bookmark = await db.query.bookmarks.findFirst({
-      where: this.createClauses(data),
+  async getMany(params: BookmarksParams) {
+    const { userId, page, limit } = params;
+
+    const cacheData = await bookmarksCache.getMany({
+      type: 'refs',
+      ...params,
     });
 
-    return bookmark ?? null;
-  }
+    if (cacheData) return cacheData;
 
-  async getMany(data: {
-    page: number;
-    limit: number;
-    entity?: (typeof bookmarkTypes)[number];
-    userId?: number;
-  }) {
-    const { page, limit } = data;
-
-    return db.query.bookmarks.findMany({
+    const bookmarks = await db.query.bookmarks.findMany({
       limit,
       offset: limit * page - limit,
       orderBy: [desc(entities.bookmarks.createdAt)],
-      where: this.createClauses(data),
+      where: eq(entities.bookmarks.userId, userId),
     });
-  }
 
-  async deleteOne(data: BookmarkData) {
-    const [deletedBookmark] = await db
-      .delete(entities.bookmarks)
-      .where(this.createClauses(data))
-      .returning();
+    await bookmarksCache.createMany({
+      type: 'refs',
+      bookmarks,
+      ...params,
+    });
 
-    return deletedBookmark ? deletedBookmark : null;
-  }
-
-  private createClauses(data: Partial<BookmarkData> = {}) {
-    const clauses: SQL[] = [];
-
-    if (data.entity) {
-      clauses.push(eq(entities.bookmarks.entity, data.entity));
-    }
-
-    if (data.entityId) {
-      clauses.push(eq(entities.bookmarks.entityId, data.entityId));
-    }
-
-    if (data.userId) {
-      clauses.push(eq(entities.bookmarks.userId, data.userId));
-    }
-
-    return and(...clauses);
+    return bookmarks;
   }
 }
 

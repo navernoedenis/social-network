@@ -9,7 +9,6 @@ import { authService } from '@/resources/auth';
 import { emailService } from '@/utils/services';
 import { passwordsService } from '@/resources/passwords';
 import { sessionsTokensService } from '@/resources/session-tokens';
-import { statusService } from '@/resources/status';
 import { usersService } from '@/resources/users';
 import { verificationsService } from '@/resources/verifications';
 
@@ -46,9 +45,17 @@ export const signup = async (
   const dto = req.body as SignUpDto;
 
   try {
-    const user = await usersService.getByEmail(dto.email);
+    const [user, username] = await Promise.all([
+      usersService.getByEmail(dto.email),
+      usersService.getByUsername(dto.username),
+    ]);
+
     if (user) {
       throw new Conflict('Email is already taken');
+    }
+
+    if (username) {
+      throw new Conflict('Username is already taken');
     }
 
     const token = createToken();
@@ -57,6 +64,7 @@ export const signup = async (
     await authService.signUp({
       email: dto.email,
       password: hash,
+      username: dto.username,
       verificationToken: token,
     });
 
@@ -91,15 +99,12 @@ export const login = async (
   const dto = req.body as LoginDto;
 
   try {
-    const user = await usersService.getByEmail(dto.email, {
-      withProfile: true,
-    });
+    const user = await usersService.getByEmail(dto.email);
     if (!user) {
       throw new Unauthorized('No user with this email');
     }
 
     const password = await passwordsService.getOne(user.id);
-
     const isPasswordsMatch = await verifyHash(dto.password, password.hash);
     if (!isPasswordsMatch) {
       return (
@@ -128,15 +133,10 @@ export const login = async (
       rememberMe: dto.rememberMe,
     });
 
-    await Promise.all([
-      sessionsTokensService.createOne(req, {
-        userId: user.id,
-        token: newTokens.refreshToken,
-      }),
-      statusService.updateOne(user.id, {
-        isOnline: true,
-      }),
-    ]);
+    await sessionsTokensService.createOne(req, {
+      userId: user.id,
+      token: newTokens.refreshToken,
+    });
 
     res
       .status(httpStatus.OK)
@@ -160,17 +160,12 @@ export const logout = async (
   res: Response,
   next: NextFunction
 ) => {
-  const me = req.user!;
   const { refreshToken } = parseCookieToken(req.cookies);
 
   try {
     if (refreshToken) {
       await sessionsTokensService.deleteOne(refreshToken);
     }
-
-    await statusService.updateOne(me.id, {
-      isOnline: false,
-    });
 
     res
       .status(httpStatus.OK)
@@ -215,10 +210,7 @@ export const updateTokens = async (
     );
 
     await Promise.all([
-      sessionsTokensService.revokeOne({
-        token: refreshToken,
-        userId: user.id,
-      }),
+      sessionsTokensService.deleteOne(refreshToken),
       sessionsTokensService.createOne(req, {
         userId: user.id,
         token: newTokens.refreshToken,
@@ -395,11 +387,11 @@ export const updatePassword = async (
     }
 
     const updatePasswordDto = req.body as UpdatePasswordDto;
-    const newPassword = await createHash(updatePasswordDto.password);
+    const newHash = await createHash(updatePasswordDto.password);
 
     await Promise.all([
       verificationsService.deleteForgotPasswordVerification(verification.id),
-      passwordsService.updateOne(+userId, newPassword),
+      passwordsService.updateOne(+userId, newHash),
     ]);
 
     res

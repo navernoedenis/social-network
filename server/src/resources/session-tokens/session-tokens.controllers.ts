@@ -5,7 +5,7 @@ import {
   type NextFunction,
 } from '@/types/main';
 
-import { BadRequest, parseCookieToken } from '@/utils/helpers';
+import { BadRequest, Forbidden, parseCookieToken } from '@/utils/helpers';
 import { httpStatus } from '@/utils/constants';
 import { sessionsTokensService } from './session-tokens.service';
 
@@ -30,35 +30,39 @@ export const getSessionTokens = async (
   }
 };
 
-export const revokeSessionToken = async (
+export const deleteSessionToken = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   const me = req.user!;
-  const tokenId = req.params.id;
+  const token = req.params.token;
 
   try {
-    const revokedToken = await sessionsTokensService.revokeOne({
-      tokenId,
-      userId: me.id,
-    });
-    if (!revokedToken) {
+    const sessionToken = await sessionsTokensService.getByToken(token);
+    if (!sessionToken) {
       throw new BadRequest("Token doesn't exists");
     }
+
+    const isMyToken = sessionToken.userId === me.id;
+    if (!isMyToken) {
+      throw new Forbidden('You are trying to remove not your token');
+    }
+
+    await sessionsTokensService.deleteOne(token);
 
     res.status(httpStatus.OK).json({
       success: true,
       statusCode: httpStatus.OK,
       data: null,
-      message: 'You token has been revoked!',
+      message: 'You token has been deleted!',
     } as HttpResponse);
   } catch (error) {
     next(error);
   }
 };
 
-export const revokeSessionTokens = async (
+export const deleteSessionTokens = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -68,15 +72,13 @@ export const revokeSessionTokens = async (
   const refreshToken = cookieToken.refreshToken!;
 
   try {
-    await sessionsTokensService.revokeMany(me.id, {
-      exceptCurrentToken: refreshToken,
-    });
+    await sessionsTokensService.deleteMany(me.id, refreshToken);
 
     res.status(httpStatus.OK).json({
       success: true,
       statusCode: httpStatus.OK,
       data: null,
-      message: 'You tokens has been revoked!',
+      message: 'You tokens has been deleted!',
     } as HttpResponse);
   } catch (error) {
     next(error);

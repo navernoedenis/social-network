@@ -6,11 +6,17 @@ import {
 } from '@/types/main';
 
 import { postsService } from '@/resources/posts';
+
 import { httpStatus } from '@/utils/constants';
 import { paginateQuery } from '@/utils/helpers';
 
+import { bookmarksCache } from './bookmarks.cache';
 import { bookmarksService } from './bookmarks.service';
-import { type BookmarkData, type BookmarkDto } from './bookmarks.types';
+import {
+  type BookmarkData,
+  type BookmarkDto,
+  type BookmarksParams,
+} from './bookmarks.types';
 
 export const toggleBookmark = async (
   req: Request,
@@ -27,21 +33,19 @@ export const toggleBookmark = async (
       userId: me.id,
     };
 
-    const bookmark = await bookmarksService.getOne(bookmarkData);
+    const bookmark = await bookmarksService.toggleOne(bookmarkData);
     let message = '';
 
     if (bookmark) {
-      await bookmarksService.deleteOne(bookmarkData);
-      message = `You have removed ${dto.entity} from yours bookmarks 🫛`;
-    } else {
-      await bookmarksService.createOne(bookmarkData);
       message = `You have added ${dto.entity} to yours bookmarks 🥑`;
+    } else {
+      message = `You have removed ${dto.entity} from yours bookmarks 🫛`;
     }
 
     res.status(httpStatus.OK).json({
       success: true,
       statusCode: httpStatus.OK,
-      data: !bookmark,
+      data: !!bookmark,
       message,
     } as HttpResponse);
   } catch (error) {
@@ -56,30 +60,44 @@ export const getBookmarks = async (
 ) => {
   const me = req.user!;
   const { page, limit } = paginateQuery(req.query, {
-    defaultLimit: 3,
+    defaultLimit: 5,
   });
 
   try {
-    const bookmarks = await bookmarksService.getMany({
-      limit,
-      page,
+    const bookmarksParams: BookmarksParams = {
       userId: me.id,
+      page,
+      limit,
+    };
+
+    const cacheBookmarksData = await bookmarksCache.getMany({
+      type: 'data',
+      ...bookmarksParams,
     });
 
-    // we may have different bookmarks in the future
     const bookmarksData: unknown[] = [];
 
-    for (const bookmark of bookmarks) {
-      if (bookmark.entity === 'post') {
-        const post = await postsService.getOne(bookmark.entityId, me.id);
-        bookmarksData.push(post);
+    if (!cacheBookmarksData) {
+      const bookmarks = await bookmarksService.getMany(bookmarksParams);
+
+      for (const bookmark of bookmarks) {
+        if (bookmark.entity === 'post') {
+          const post = await postsService.getOne(bookmark.entityId, me.id);
+          if (post) bookmarksData.push(post);
+        }
       }
+
+      await bookmarksCache.createMany({
+        type: 'data',
+        bookmarks: bookmarksData,
+        ...bookmarksParams,
+      });
     }
 
     res.status(httpStatus.OK).json({
       success: true,
       statusCode: httpStatus.OK,
-      data: bookmarksData,
+      data: cacheBookmarksData ? cacheBookmarksData : bookmarksData,
       message: 'Here is your bookmarks 🫑',
     } as HttpResponse);
   } catch (error) {

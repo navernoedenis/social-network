@@ -7,56 +7,11 @@ import {
 
 import { httpStatus } from '@/utils/constants';
 import { Forbidden, paginateQuery } from '@/utils/helpers';
-import { friendsService } from './friends.service';
-
-export const createFriend = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const me = req.user!;
-  const friendId = parseInt(req.params.id);
-
-  try {
-    await friendsService.createOne(me.id, friendId);
-
-    res.status(httpStatus.OK).json({
-      success: true,
-      statusCode: httpStatus.OK,
-      data: null,
-      message: 'You have created a friendship request 🫒',
-    } as HttpResponse);
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const approveFriend = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const me = req.user!;
-  const friendId = parseInt(req.params.id);
-
-  try {
-    const friendship = await friendsService.getOne(me.id, friendId);
-    if (friendship!.userId === me.id) {
-      throw new Forbidden("You can't approve your friend request 🤚");
-    }
-
-    await friendsService.approveOne(me.id, friendId);
-
-    res.status(httpStatus.OK).json({
-      success: true,
-      statusCode: httpStatus.OK,
-      data: null,
-      message: 'You have approved a friend 🖐️',
-    } as HttpResponse);
-  } catch (error) {
-    next(error);
-  }
-};
+import {
+  friendsCountService,
+  friendsRequestService,
+  friendsService,
+} from './friends.service';
 
 export const getFriends = async (
   req: Request,
@@ -69,20 +24,38 @@ export const getFriends = async (
   });
 
   try {
-    const [count, friends] = await Promise.all([
-      friendsService.friendsCount(me.id),
-      friendsService.getMany({
-        myId: me.id,
-        page,
-        limit,
-      }),
-    ]);
+    const friends = await friendsService.getMany({
+      userId: me.id,
+      page,
+      limit,
+    });
 
     res.status(httpStatus.OK).json({
       success: true,
       statusCode: httpStatus.OK,
-      data: { count, friends },
+      data: friends,
       message: 'Here are you friends 🛩️',
+    } as HttpResponse);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getFriendsCount = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const me = req.user!;
+
+  try {
+    const friendsCount = await friendsCountService.getCount(me.id);
+
+    res.status(httpStatus.OK).json({
+      success: true,
+      statusCode: httpStatus.OK,
+      data: friendsCount,
+      message: 'Your friends count 📐',
     } as HttpResponse);
   } catch (error) {
     next(error);
@@ -111,7 +84,56 @@ export const deleteFriend = async (
   }
 };
 
-export const getRequests = async (
+export const createFriendRequest = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const me = req.user!;
+  const friendId = parseInt(req.params.id);
+
+  try {
+    await friendsRequestService.createOne(me.id, friendId);
+
+    res.status(httpStatus.OK).json({
+      success: true,
+      statusCode: httpStatus.OK,
+      data: null,
+      message: 'You have created a friendship request 🫒',
+    } as HttpResponse);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const approveFriendRequest = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const me = req.user!;
+  const friendId = parseInt(req.params.id);
+
+  try {
+    const friendship = await friendsService.getOne(me.id, friendId);
+    if (friendship!.userId === me.id) {
+      throw new Forbidden("You can't approve your friend request 🤚");
+    }
+
+    await friendsRequestService.approveOne(me.id, friendId);
+
+    res.status(httpStatus.OK).json({
+      success: true,
+      statusCode: httpStatus.OK,
+      data: null,
+      message: 'You have approved a friend 🖐️',
+    } as HttpResponse);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getIncomingRequests = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -122,8 +144,9 @@ export const getRequests = async (
   });
 
   try {
-    const requests = await friendsService.getRequests({
-      myId: me.id,
+    const requests = await friendsRequestService.getMany({
+      status: 'incoming',
+      userId: me.id,
       page,
       limit,
     });
@@ -139,7 +162,7 @@ export const getRequests = async (
   }
 };
 
-export const getMyRequests = async (
+export const getOutgoingRequests = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -150,8 +173,9 @@ export const getMyRequests = async (
   });
 
   try {
-    const myRequests = await friendsService.getMyRequests({
-      myId: me.id,
+    const myRequests = await friendsRequestService.getMany({
+      status: 'outgoing',
+      userId: me.id,
       page,
       limit,
     });

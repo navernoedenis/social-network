@@ -1,63 +1,73 @@
 import { eq, or, like } from 'drizzle-orm';
 import { db } from '@/db';
-import {
-  type FindKey,
-  type UpdateFields,
-  type WithConfig,
-} from './users.types';
-
 import * as entities from '@/db/files/entities';
 
+import { userSearchCache, usersOnlineCache, usersCache } from './users.cache';
+import { type UpdateFields } from './users.types';
+
 class UsersService {
-  async getOne(key: FindKey, value: string | number, config: WithConfig = {}) {
+  async getById(id: number) {
+    const cacheData = await usersCache.getById(id);
+    if (cacheData) return cacheData;
+
     const user = await db.query.users.findFirst({
-      where: eq(entities.users[key], value),
+      where: eq(entities.users.id, id),
       with: {
-        ...(config.withProfile && { profile: true }),
-        ...(config.withSettings && { settings: true }),
+        profile: true,
+        settings: true,
       },
     });
+
+    if (user) {
+      await usersCache.createOne(user);
+    }
 
     return user;
   }
 
-  async getMany(word: string, config: WithConfig & { limit?: number } = {}) {
-    const { limit = 10 } = config;
-    const key = `%${word}%`;
+  async getByEmail(email: string) {
+    const cacheData = await usersCache.getByEmail(email);
+    if (cacheData) return cacheData;
 
-    return db.query.users.findMany({
-      where: or(
-        like(entities.users.email, key),
-        like(entities.users.firstname, key),
-        like(entities.users.lastname, key),
-        like(entities.users.username, key)
-      ),
-      with: {
-        ...(config.withProfile && { profile: true }),
-        ...(config.withSettings && { settings: true }),
-      },
-      limit,
+    const user = await db.query.users.findFirst({
+      where: eq(entities.users.email, email),
     });
+
+    if (!user) return null;
+    return this.getById(user.id);
   }
 
-  async getById(id: number, config: WithConfig = {}) {
-    return this.getOne('id', id, config);
-  }
+  async getByUsername(username: string) {
+    const cacheData = await usersCache.getByUsername(username);
+    if (cacheData) return cacheData;
 
-  async getByEmail(email: string, config: WithConfig = {}) {
-    return this.getOne('email', email, config);
-  }
+    const user = await db.query.users.findFirst({
+      where: eq(entities.users.username, username),
+    });
 
-  async getByUsername(username: string, config: WithConfig = {}) {
-    return this.getOne('username', username, config);
+    if (!user) return null;
+    return this.getById(user.id);
   }
 
   async updateOne(userId: number, fields: UpdateFields) {
-    return db
+    await db
       .update(entities.users)
       .set(fields)
-      .where(eq(entities.users.id, userId))
-      .returning();
+      .where(eq(entities.users.id, userId));
+
+    const updatedData = await db.query.users.findFirst({
+      where: eq(entities.users.id, userId),
+      with: {
+        profile: true,
+        settings: true,
+      },
+    });
+
+    if (updatedData) {
+      await usersCache.createOne(updatedData);
+    }
+
+    return updatedData;
   }
 
   async deleteOne(userId: number) {
@@ -66,8 +76,54 @@ class UsersService {
       .where(eq(entities.users.id, userId))
       .returning();
 
+    if (user) {
+      await usersCache.deleteOne(user);
+    }
+
     return user;
   }
 }
 
+class UsersSearchService {
+  async getMany(search: string) {
+    const cacheData = await userSearchCache.getMany(search);
+    if (cacheData) return cacheData;
+
+    const searchSQL = or(
+      like(entities.users.email, `%${search}%`),
+      like(entities.users.firstname, `%${search}%`),
+      like(entities.users.lastname, `%${search}%`),
+      like(entities.users.username, `%${search}%`)
+    );
+
+    const users = await db.query.users.findMany({
+      where: search ? searchSQL : undefined,
+      with: {
+        profile: true,
+        settings: true,
+      },
+      limit: 10,
+    });
+
+    await userSearchCache.createOne(search, users);
+    return users;
+  }
+}
+
+class UsersOnlineService {
+  async setOnline(userId: number) {
+    await usersOnlineCache.createOne(userId);
+  }
+
+  async isOnline(userId: number) {
+    return usersOnlineCache.isOnline(userId);
+  }
+
+  async setOffline(userId: number) {
+    await usersOnlineCache.deleteOne(userId);
+  }
+}
+
+export const usersOnlineService = new UsersOnlineService();
+export const usersSearchService = new UsersSearchService();
 export const usersService = new UsersService();

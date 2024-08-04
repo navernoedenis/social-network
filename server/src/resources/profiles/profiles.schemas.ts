@@ -15,9 +15,7 @@ const password = trimedString
 export const updateDataSchema = z.object({
   about: trimedString.max(200, 'About field must be not more than 200 letters'),
   birthday: z.date().nullable(),
-  username: trimedString
-    .max(30, 'Maximum length of a username is 30 letters')
-    .nullable(),
+  username: trimedString.max(30, 'Maximum length of a username is 30 letters'),
 });
 
 export const updatePhoneSchema = z.object({

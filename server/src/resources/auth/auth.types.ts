@@ -18,5 +18,6 @@ export type TwoFaPayload = LoginTwoFaDto;
 export type SignUpData = {
   email: string;
   password: string;
+  username: string;
   verificationToken: string;
 };

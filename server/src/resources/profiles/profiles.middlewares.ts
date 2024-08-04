@@ -1,6 +1,7 @@
 import { type NextFunction, type Request, type Response } from '@/types/main';
 import { usersService } from '@/resources/users';
 import { BadRequest } from '@/utils/helpers';
+
 import { type UpdateDataDto } from './profiles.types';
 
 export const isUsernameTaken = async (

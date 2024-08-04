@@ -35,20 +35,10 @@ export const updateData = async (
   const { username, ...dto } = req.body as UpdateDataDto;
 
   try {
-    const promises: Promise<unknown>[] = [
+    const [updatedProfile] = await Promise.all([
       profilesService.updateOne(me.id, dto),
-    ];
-
-    const isUsernameEmpty = username?.trim().length === 0;
-    if (!isUsernameEmpty) {
-      const promise = usersService.updateOne(me.id, {
-        username,
-      });
-      promises.push(promise);
-    }
-
-    await Promise.all(promises);
-    const updatedProfile = await profilesService.getOne(me.id);
+      usersService.updateOne(me.id, { username }),
+    ]);
 
     res.status(httpStatus.OK).json({
       success: true,
@@ -90,6 +80,7 @@ export const updatePhone = async (
     const shouldResetPhone = !!dto.phone === false;
     if (shouldResetPhone) {
       await profilesService.updatePhone(me.id, null);
+
       return res.status(httpStatus.OK).json({
         success: true,
         statusCode: httpStatus.OK,
@@ -169,18 +160,17 @@ export const updatePassword = async (
   const dto = req.body as UpdatePasswordDto;
 
   try {
-    const currentPassword = await passwordsService.getOne(me.id);
-
+    const password = await passwordsService.getOne(me.id);
     const isCurrentPasswordMatch = await verifyHash(
       dto.currentPassword,
-      currentPassword.hash
+      password.hash
     );
     if (!isCurrentPasswordMatch) {
       throw new BadRequest('Your current password is wrong');
     }
 
-    const hash = await createHash(dto.password);
-    await passwordsService.updateOne(me.id, hash);
+    const newHash = await createHash(dto.password);
+    await passwordsService.updateOne(me.id, newHash);
 
     res.status(httpStatus.OK).json({
       success: true,
